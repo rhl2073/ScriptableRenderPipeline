@@ -230,7 +230,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
             }
 
-            if (camera.clearFlags == CameraClearFlags.Skybox)
+            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
             {
                 // We can't combine skybox and render opaques passes if there's a custom render pass in between
                 // them. Ideally we need a render graph here that each render pass declares inputs and output
