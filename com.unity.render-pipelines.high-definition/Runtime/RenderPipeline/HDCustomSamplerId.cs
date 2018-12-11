@@ -84,6 +84,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DepthOfFieldGatherNear,
         DepthOfFieldPreCombine,
         DepthOfFieldCombine,
+        MotionBlurTileGen,
         MotionBlur,
         PaniniProjection,
         Bloom,

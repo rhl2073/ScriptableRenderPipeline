@@ -52,6 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Prefetched components (updated on every frame)
         Exposure m_Exposure;
         DepthOfField m_DepthOfField;
+        MotionBlur m_MotionBlur;
         PaniniProjection m_PaniniProjection;
         Bloom m_Bloom;
         ChromaticAberration m_ChromaticAberration;
@@ -194,6 +195,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var stack = VolumeManager.instance.stack;
             m_Exposure                  = stack.GetComponent<Exposure>();
             m_DepthOfField              = stack.GetComponent<DepthOfField>();
+            m_MotionBlur                = stack.GetComponent<MotionBlur>();
             m_PaniniProjection          = stack.GetComponent<PaniniProjection>();
             m_Bloom                     = stack.GetComponent<Bloom>();
             m_ChromaticAberration       = stack.GetComponent<ChromaticAberration>();
@@ -282,7 +284,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)
-                // TODO: Motion blur goes here
+                if(m_MotionBlur.IsActive())
+                {
+                    using (new ProfilingSample(cmd, "Motion Blur", CustomSamplerId.MotionBlur.GetSampler()))
+                    {
+                        DoMotionBlur(cmd, camera, source, source);
+                     //   PoolSource(ref source, destination);
+                    }
+                }
 
                 // Panini projection is done as a fullscreen pass after all depth-based effects are
                 // done and before bloom kicks in
@@ -1157,6 +1166,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void DoMotionBlur(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
         {
+            // -----------------------------------------------------------------------------
+            // Temporary targets prep
+
+            RTHandle minMaxTileVel = m_Pool.Get(Vector2.one, RenderTextureFormat.ARGBHalf);
+            var cs = m_Resources.shaders.motionBlurTileGenCS;
+            int kernel = cs.FindKernel("TileGenPass");
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
+            const int tileSize = 16;
+            int threadGroupX = (camera.actualWidth + (tileSize-1)) / tileSize;
+            int threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize;
+            cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
         }
 
         #endregion

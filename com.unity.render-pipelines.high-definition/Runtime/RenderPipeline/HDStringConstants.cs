@@ -554,5 +554,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _BlueNoiseTexture               = Shader.PropertyToID("_BlueNoiseTexture");
         public static readonly int _DitherParams                   = Shader.PropertyToID("_DitherParams");
         public static readonly int _UVTransform                    = Shader.PropertyToID("_UVTransform");
+
+        public static readonly int _TileVelMinMax                  = Shader.PropertyToID("_TileMinMaxVel");
+
     }
 }
