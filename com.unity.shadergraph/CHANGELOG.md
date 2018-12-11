@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.3.0] - 2018-11-xx
+### Added
+- When you hover your cursor over a property in the blackboard, this now highlights the corresponding property elements in your Shader Graph. Similarly, if you hover over a property in the Shader Graph itself, this highlights the corresponding property in the blackboard.
+
 ### Changed
 - Errors in the compiled shader are now displayed as badges on the appropriate node.
 
@@ -23,7 +26,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [5.2.0] - 2018-11-27
 ### Added
 - Shader Graph now has __Group Node__, where you can group together several nodes. You can use this to keep your Graphs organized and nice.
-- When you hover your cursor over a property in the blackboard, this now highlights the corresponding property elements in your Shader Graph. Similarly, if you hover over a property in the Shader Graph itself, this highlights the corresponding property in the blackboard.
 
 ## [5.1.0] - 2018-11-19
 ### Added
