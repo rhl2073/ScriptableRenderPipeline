@@ -1169,14 +1169,59 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // -----------------------------------------------------------------------------
             // Temporary targets prep
 
-            RTHandle minMaxTileVel = m_Pool.Get(Vector2.one, RenderTextureFormat.ARGBHalf);
+            const int tileSize = 16;
+            int tileTexWidth    = Mathf.RoundToInt(camera.actualWidth / tileSize);
+            int tileTexHeight   = Mathf.RoundToInt(camera.actualHeight / tileSize);
+
+            RTHandle minMaxTileVel = m_Pool.Get(Vector2.one / tileSize, RenderTextureFormat.ARGBHalf);
+            RTHandle maxTileNeigbourhood = m_Pool.Get(Vector2.one / tileSize, RenderTextureFormat.RGHalf);
+            RTHandle preppedVelocity = m_Pool.Get(Vector2.one, RenderTextureFormat.RGB111110Float);
+
+            // -----------------------------------------------------------------------------
+            // Prep velocity
+
+            // - Move velocity to pixel space rather than world.
+            // - Normalize for a maximum value (max blur radius... from settings? I think it should be tile size related). Then move to [0...1] 
+            // - Pack normalized velocity and linear depth in R11G11B10
+            // TODO_FCC: Check that the max blur based on Tile size is a good assumption. I think it is.
+            const float maxBlurRadius = (float)tileSize;
+
+
+            // -----------------------------------------------------------------------------
+            // Generate MinMax velocity tiles
+
+            // TODO: Store in a lower footprint. This is not necesessary now as it has more precision than source.
+            // Do we need to store the min velocity? No, what if we store R11G11B10 with RG = Max vel and B = Diff?
+            // This will be faster and coherent with the memory footprint of the source (11 bit per channel) .
+            // TODO: Check if we have a use case for it.
+             
             var cs = m_Resources.shaders.motionBlurTileGenCS;
             int kernel = cs.FindKernel("TileGenPass");
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
-            const int tileSize = 16;
             int threadGroupX = (camera.actualWidth + (tileSize-1)) / tileSize;
             int threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize;
             cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+
+            // -----------------------------------------------------------------------------
+            // Generate max tiles neigbhourhood
+
+            kernel = cs.FindKernel("TileNeighbourhood");
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
+            threadGroupX = (tileTexWidth  + 7) / 8;
+            threadGroupY = (camera.actualHeight + 7) / 8;
+            cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+
+
+
+            // -----------------------------------------------------------------------------
+            // Recycle RTs
+
+            m_Pool.Recycle(minMaxTileVel);
+            m_Pool.Recycle(maxTileNeigbourhood);
+
+
+
         }
 
         #endregion
