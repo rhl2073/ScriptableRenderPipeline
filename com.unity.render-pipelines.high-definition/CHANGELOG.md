@@ -4,12 +4,43 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.2.0-preview] - 2018-11-xx
+## [5.3.0-preview] - 2018-11-xx
+
+### Added
+- Added new API to perform a camera rendering
+- Add suport for hair master node (Double kajiya kay - Lambert)
+- Added Reset behaviour in DebugMenu (ingame mapping is right joystick + B)
+- Added default HD scene at new scene creation while in HDRP.
+- Added Wizard helping to configure HDRP project.
+- Added new UI for decal material to allow remapping and scaling of some properties
+
+### Fixed
+- Fixed logic to disable FPTL with stereo rendering
+- Fixed stacklit transmission and sun highlight
+- Fixed decals with stereo rendering
+- Fixed flip logic for postprocessing + VR
+- Fixed copyStencilBuffer pass for Switch
+- Fixed point light shadow map culling that wasn't taking into account far plane
+- Fixed usage of SSR with transparent on all master node
+- Fixed SSR and microshadowing on fabric material
+- Fixed blit pass for stereo rendering
+- Fixed windows and in-game DebugMenu sync.
+- Fixed FrameSettings' LitShaderMode sync when opening DebugMenu.
+- Fixed Metal specific issues with decals, hitting a sampler limit and compiling AxF shader
+- Fixed an issue with flipped depth buffer during postprocessing
+
+### Changed
+- ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
+- Removing the simple lightloop used by the simple lit shader
+- Whole refactor of reflection system: Workflow and performance improvement.
+
+## [5.2.0-preview] - 2018-11-27
 
 ### Added
 - Added option to run Contact Shadows and Volumetrics Voxelization stage in Async Compute
 - Added camera freeze debug mode - Allow to visually see culling result for a camera
 - Added support of Gizmo rendering before and after postprocess in Editor
+- Added support of LuxAtDistance for punctual lights
 
 ### Fixed
 - Fixed Debug.DrawLine and Debug.Ray call to work in game view
@@ -17,11 +48,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed divide by 0 in refraction causing NaN
 - Fixed disable rough refraction support
 - Fixed refraction, SSS and atmospheric scattering for VR
-
+- Fixed forward clustered lighting for VR (double-wide).
+- Fixed Light's UX to not allow negative intensity
+- Fixed HDRenderPipelineAsset inspector broken when displaying its FrameSettings from project windows.
+- Fixed forward clustered lighting for VR (double-wide).
+- Fixed HDRenderPipelineAsset inspector broken when displaying its FrameSettings from project windows.
+- Fixed Decals and SSR diable flags for all shader graph master node (Lit, Fabric, StackLit, PBR)
+- Fixed Distortion blend mode for shader graph master node (Lit, StackLit)
+- Fixed bent Normal for Fabric master node in shader graph
+- Fixed PBR master node lightlayers
+- Fixed shader stripping for built-in lit shaders.
 
 ### Changed
 - Rename "Regular" in Diffusion profile UI "Thick Object"
 - Changed VBuffer depth parametrization for volumetric from distanceRange to depthExtent - Require update of volumetric settings - Fog start at near plan
+- SpotLight with box shape use Lux unit only
 
 ## [5.1.0-preview] - 2018-11-19
 
