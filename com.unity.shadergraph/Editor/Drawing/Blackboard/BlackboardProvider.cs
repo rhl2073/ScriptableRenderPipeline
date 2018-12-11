@@ -81,11 +81,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (m_SelectedNodes.Any())
             {
-                var graphView = blackboard.GetFirstAncestorOfType<MaterialGraphView>();
-                foreach (var node in graphView.nodes.ToList().OfType<MaterialNodeView>())
+                foreach (var node in m_SelectedNodes)
                 {
                     node.RemoveFromClassList("hovered");
                 }
+                m_SelectedNodes.Clear();
             }
         }
 
@@ -309,11 +309,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else if (evt.eventTypeId == MouseLeaveEvent.TypeId() && m_SelectedNodes.Any())
             {
-                foreach (var node in graphView.nodes.ToList().OfType<MaterialNodeView>())
+                foreach (var node in m_SelectedNodes)
                 {
-                    m_SelectedNodes.Remove(node);
                     node.RemoveFromClassList("hovered");
                 }
+                m_SelectedNodes.Clear();
             }
         }
     }
