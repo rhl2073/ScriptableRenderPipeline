@@ -307,6 +307,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             desc.sRGB = true;
             desc.width = (int)((float)desc.width * renderScale * scaler);
             desc.height = (int)((float)desc.height * renderScale * scaler);
+            desc.useDynamicScale = cameraData.camera.allowDynamicResolution;
             return desc;
         }
 

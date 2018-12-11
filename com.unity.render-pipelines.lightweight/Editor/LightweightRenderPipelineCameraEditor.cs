@@ -148,6 +148,7 @@ namespace UnityEditor.Rendering.LWRP
             settings.DrawOcclusionCulling();
             DrawHDR();
             DrawMSAA();
+            settings.DrawDynamicResolution();
             DrawAdditionalData();
             settings.DrawVR();
             settings.DrawMultiDisplay();
