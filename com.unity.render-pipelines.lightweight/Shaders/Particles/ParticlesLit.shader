@@ -88,8 +88,7 @@ Shader "Lightweight Render Pipeline/Particles/Lit"
             
             // -------------------------------------
             // Particle Keywords
-            #pragma shader_feature _ _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
-            #pragma shader_feature _ _ALPHATEST_ON
+            #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
             #pragma shader_feature _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
             #pragma shader_feature _FLIPBOOKBLENDING_ON
             #pragma shader_feature _FADING_ON
@@ -102,18 +101,16 @@ Shader "Lightweight Render Pipeline/Particles/Lit"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
-            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
 
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment
 
-            #include "ParticlesLitInput.hlsl"
-            #include "ParticlesLitForwardPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Particles/ParticlesLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Particles/ParticlesLitForwardPass.hlsl"
             ENDHLSL
         }
     }

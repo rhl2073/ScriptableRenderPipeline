@@ -5,7 +5,6 @@ Shader "Lightweight Render Pipeline/Baked Lit"
         _BaseMap("Texture", 2D) = "white" {}
         _BaseColor("Color", Color) = (1, 1, 1, 1)
         _Cutoff("AlphaCutout", Range(0.0, 1.0)) = 0.5
-        [Toggle] _SampleGI("SampleGI", float) = 0.0
         _BumpMap("Normal Map", 2D) = "bump" {}
 
         // BlendMode
@@ -39,7 +38,7 @@ Shader "Lightweight Render Pipeline/Baked Lit"
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature _ _SAMPLE_GI _NORMALMAP
+            #pragma shader_feature _ _NORMALMAP
             #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ALPHAPREMULTIPLY_ON
 
@@ -52,7 +51,7 @@ Shader "Lightweight Render Pipeline/Baked Lit"
 
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
-            #include "BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/BakedLitInput.hlsl"
 
             struct Attributes
             {
@@ -68,14 +67,12 @@ Shader "Lightweight Render Pipeline/Baked Lit"
             struct Varyings
             {
                 float3 uv0AndFogCoord           : TEXCOORD0; // xy: uv0, z: fogCoord
-#if defined(_SAMPLE_GI) || defined(_NORMALMAP)
                 DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
                 half3 normal                    : TEXCOORD2;
     #if defined(_NORMALMAP)
                 half3 tangent                   : TEXCOORD3;
                 half3 bitangent                 : TEXCOORD4;
     #endif
-#endif
                 float4 vertex : SV_POSITION;
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -95,7 +92,6 @@ Shader "Lightweight Render Pipeline/Baked Lit"
                 output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
                 output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
 
-#if defined(_SAMPLE_GI) || defined(_NORMALMAP)
                 VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
                 output.normal = normalInput.normalWS;
     #if defined(_NORMALMAP)
@@ -104,7 +100,7 @@ Shader "Lightweight Render Pipeline/Baked Lit"
     #endif
                 OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
                 OUTPUT_SH(output.normal, output.vertexSH);
-#endif
+                
                 return output;
             }
 
@@ -122,8 +118,6 @@ Shader "Lightweight Render Pipeline/Baked Lit"
                 color *= alpha;
 #endif
 
-
-#if defined(_SAMPLE_GI) || defined(_NORMALMAP)
     #if defined(_NORMALMAP)
                 half3 normalTS = SampleNormal(uv, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap)).xyz;
                 half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangent, input.bitangent, input.normal));
@@ -132,7 +126,6 @@ Shader "Lightweight Render Pipeline/Baked Lit"
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
-#endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
 
                 return half4(color, alpha);
@@ -164,8 +157,8 @@ Shader "Lightweight Render Pipeline/Baked Lit"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #include "BakedLitInput.hlsl"
-            #include "DepthOnlyPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/DepthOnlyPass.hlsl"
             ENDHLSL
         }
 
@@ -184,8 +177,8 @@ Shader "Lightweight Render Pipeline/Baked Lit"
             #pragma vertex LightweightVertexMeta
             #pragma fragment LightweightFragmentMetaBakedLit
 
-            #include "BakedLitInput.hlsl"
-            #include "BakedLitMetaPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/BakedLitMetaPass.hlsl"
 
             ENDHLSL
         }

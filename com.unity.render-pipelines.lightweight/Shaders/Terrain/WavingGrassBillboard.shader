@@ -47,8 +47,8 @@ Shader "Hidden/TerrainEngine/Details/BillboardWavingDoublePass" // Has to overri
             #pragma fragment LitPassFragmentGrass
             #define _ALPHATEST_ON
 
-            #include "WavingGrassInput.hlsl"
-            #include "WavingGrassPasses.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/WavingGrassInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/WavingGrassPasses.hlsl"
             ENDHLSL
         }
 
@@ -78,8 +78,8 @@ Shader "Hidden/TerrainEngine/Details/BillboardWavingDoublePass" // Has to overri
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #include "WavingGrassInput.hlsl"
-            #include "WavingGrassPasses.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/WavingGrassInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/WavingGrassPasses.hlsl"
             ENDHLSL
         }
     }

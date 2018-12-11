@@ -59,7 +59,6 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         public override void DrawAdvancedOptions(Material material)
         {
             EditorGUI.BeginChangeCheck();
-            BakedLitGUI.Advanced(shadingModelProperties);
             base.DrawAdvancedOptions(material);
             if (EditorGUI.EndChangeCheck())
             {

@@ -142,7 +142,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
-            glosinessSource = GlossinessSource.BaseAlpha,
+            smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
         static public UpgradeParams specularOpaque = new UpgradeParams()
@@ -151,7 +151,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
-            glosinessSource = GlossinessSource.BaseAlpha,
+            smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
         static public UpgradeParams diffuseAlpha = new UpgradeParams()
@@ -160,7 +160,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
-            glosinessSource = GlossinessSource.SpecularAlpha,
+            smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
         static public UpgradeParams specularAlpha = new UpgradeParams()
@@ -169,7 +169,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
-            glosinessSource = GlossinessSource.SpecularAlpha,
+            smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
         static public UpgradeParams diffuseAlphaCutout = new UpgradeParams()
@@ -178,7 +178,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = true,
             specularSource = SpecularSource.NoSpecular,
-            glosinessSource = GlossinessSource.SpecularAlpha,
+            smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
         static public UpgradeParams specularAlphaCutout = new UpgradeParams()
@@ -187,7 +187,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = true,
             specularSource = SpecularSource.SpecularTextureAndColor,
-            glosinessSource = GlossinessSource.SpecularAlpha,
+            smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
         static public UpgradeParams diffuseCubemap = new UpgradeParams()
@@ -196,7 +196,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
-            glosinessSource = GlossinessSource.BaseAlpha,
+            smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
         static public UpgradeParams specularCubemap = new UpgradeParams()
@@ -205,7 +205,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
-            glosinessSource = GlossinessSource.BaseAlpha,
+            smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
         static public UpgradeParams diffuseCubemapAlpha = new UpgradeParams()
@@ -214,7 +214,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
-            glosinessSource = GlossinessSource.BaseAlpha,
+            smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
         static public UpgradeParams specularCubemapAlpha = new UpgradeParams()
@@ -223,7 +223,7 @@ namespace UnityEditor.Rendering.LWRP
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
-            glosinessSource = GlossinessSource.BaseAlpha,
+            smoothnessSource = SmoothnessSource.BaseAlpha,
         };
     }
 
@@ -295,7 +295,7 @@ namespace UnityEditor.Rendering.LWRP
             SetFloat("_Blend", (float)upgradeParams.blendMode);
             SetFloat("_AlphaClip", upgradeParams.alphaClip ? 1 : 0);
             SetFloat("_SpecularHighlights", (float)upgradeParams.specularSource);
-            SetFloat("_SmoothnessSource", (float)upgradeParams.glosinessSource);
+            SetFloat("_SmoothnessSource", (float)upgradeParams.smoothnessSource);
             
             RenameTexture("_MainTex", "_BaseMap");
             RenameColor("_Color", "_BaseColor");
@@ -338,11 +338,11 @@ namespace UnityEditor.Rendering.LWRP
             }
             else
             {
-                GlossinessSource glossSource = (GlossinessSource)material.GetFloat("_SmoothnessSource");
+                SmoothnessSource glossSource = (SmoothnessSource)material.GetFloat("_SmoothnessSource");
                 bool hasGlossMap = material.GetTexture("_SpecGlossMap");
                 CoreUtils.SetKeyword(material, "_SPECGLOSSMAP", hasGlossMap);
                 CoreUtils.SetKeyword(material, "_SPECULAR_COLOR", !hasGlossMap);
-                CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", glossSource == GlossinessSource.BaseAlpha);
+                CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", glossSource == SmoothnessSource.BaseAlpha);
             }
         }
     }
@@ -386,7 +386,7 @@ namespace UnityEditor.Rendering.LWRP
 
         public static void UpdateSurfaceBlendModes(Material material)
         {
-            switch (material.GetFloat("_Surface"))
+            switch (material.GetFloat("_Mode"))
             {
                 case 0: // opaque
                     material.SetFloat("_Surface", (int)UpgradeSurfaceType.Opaque);

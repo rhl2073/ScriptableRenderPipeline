@@ -88,8 +88,8 @@ Shader "Lightweight Render Pipeline/Particles/Unlit"
             #pragma vertex vertParticleUnlit
             #pragma fragment fragParticleUnlit
 
-            #include "ParticlesUnlitInput.hlsl"
-            #include "ParticlesUnlitForwardPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Particles/ParticlesUnlitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Particles/ParticlesUnlitForwardPass.hlsl"
             
             ENDHLSL
         }

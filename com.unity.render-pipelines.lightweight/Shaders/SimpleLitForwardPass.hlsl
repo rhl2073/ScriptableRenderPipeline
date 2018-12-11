@@ -18,7 +18,7 @@ struct Varyings
     float2 uv                       : TEXCOORD0;
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
 
-    float4 posWS                    : TEXCOORD2;    // xyz: posWS
+    float3 posWS                    : TEXCOORD2;    // xyz: posWS
 
 #ifdef _NORMALMAP
     half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
@@ -135,7 +135,7 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
 
     half3 normalTS = SampleNormal(uv, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
     half3 emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
-    half4 specular = SampleSpecularGloss(uv, alpha, _SpecColor, TEXTURE2D_PARAM(_SpecGlossMap, sampler_SpecGlossMap));
+    half4 specular = SampleSpecularSmoothness(uv, alpha, _SpecColor, TEXTURE2D_PARAM(_SpecGlossMap, sampler_SpecGlossMap));
     half smoothness = specular.a;
 
     InputData inputData;
