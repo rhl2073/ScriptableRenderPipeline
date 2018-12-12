@@ -26,6 +26,8 @@ Texture2D<float2> _TileMaxNeighbourhood;
 
 CBUFFER_START(MotionBlurUniformBuffer)
 float4 _TileTargetSize;     // .xy size, .zw 1/size
+float  _MinSqVelThreshold;
+float  _MinMaxSqVelRatioForSlowPath;
 CBUFFER_END
 
 

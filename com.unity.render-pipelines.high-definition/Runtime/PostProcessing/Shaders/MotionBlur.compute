@@ -87,15 +87,12 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float maxVelLengthSqInPixels = maxVelLengthSq * screenMagnitude;
     float minVelLengthSqInPixels = tileMaxAndMinLength.z * tileMaxAndMinLength.z * screenMagnitude;
 
-    // TODO_FCC: Pass these constant via cbuffer
-    const float minSqLengthInPixelsToBlur = 0.5f;
-    const float diffRatioForFastPath = 0.5f;
 #if DEBUG_VIEW
-    if (maxVelLengthSqInPixels <= minSqLengthInPixelsToBlur)
+    if (maxVelLengthSqInPixels <= _MinSqVelThreshold)
     {
         debugColor = float3(0, 1, 0);
     }
-    else if (minVelLengthSqInPixels > diffRatioForFastPath * maxVelLengthSqInPixels)
+    else if (minVelLengthSqInPixels > _MinMaxSqVelRatioForSlowPath * maxVelLengthSqInPixels)
     {
         debugColor = float3(1, 1, 0);
     }

@@ -1225,6 +1225,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeFloatParam(cs, HDShaderIDs._MinSqVelThreshold, m_MotionBlur.minVelSqInPixels);
+            cmd.SetComputeFloatParam(cs, HDShaderIDs._MinMaxSqVelRatioForSlowPath, m_MotionBlur.tileMinMaxVelSqRatioForHighQuality);
+
             threadGroupX = (camera.actualWidth + 7) / 8;
             threadGroupY = (camera.actualHeight + 7) / 8;
             cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
