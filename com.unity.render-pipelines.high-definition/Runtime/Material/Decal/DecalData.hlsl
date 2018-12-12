@@ -3,7 +3,7 @@
 //-------------------------------------------------------------------------------------
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+//#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 
 void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out DecalSurfaceData surfaceData)
 {
@@ -23,8 +23,9 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     surfaceData.baseColor = _BaseColor;
 
 #if _COLORMAP
-    surfaceData.baseColor *= SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoords);    
+    surfaceData.baseColor *= SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoords);
 #endif
+    surfaceData.baseColor.w *= _DecalColorMapAlphaScale;
 	surfaceData.baseColor.w *= albedoMapBlend;
 	albedoMapBlend = surfaceData.baseColor.w;   
 // outside _COLORMAP because we still have base color
@@ -39,8 +40,11 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 
 #if _MASKMAP
     surfaceData.mask = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, texCoords);
+    surfaceData.mask.z *= _DecalMaskMapBlueScale;
 	maskMapBlend *= surfaceData.mask.z;	// store before overwriting with smoothness
-    surfaceData.mask.z = surfaceData.mask.w;
+    surfaceData.mask.x = _MetallicScale * surfaceData.mask.x;
+    surfaceData.mask.y = lerp(_AORemapMin, _AORemapMax, surfaceData.mask.y);
+    surfaceData.mask.z = lerp(_SmoothnessRemapMin, _SmoothnessRemapMax, surfaceData.mask.w);
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
 	surfaceData.mask.w = _MaskBlendSrc ? maskMapBlend : albedoMapBlend;
 #endif

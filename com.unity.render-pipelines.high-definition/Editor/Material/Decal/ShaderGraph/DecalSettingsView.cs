@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
-
+            /*
             int indentLevel = 0;
             ps.Add(new PropertyRow(CreateLabel("Surface Type", indentLevel)), (row) =>
             {
@@ -194,191 +194,193 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
-            Add(ps);
+            Add(ps);*/
         }
 
         void ChangeSurfaceType(ChangeEvent<Enum> evt)
         {
+            /*
             if (Equals(m_Node.surfaceType, evt.newValue))
                 return;
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Surface Type Change");
             m_Node.surfaceType = (SurfaceType)evt.newValue;
+            */
         }
 
         void ChangeDoubleSidedMode(ChangeEvent<Enum> evt)
         {
-            if (Equals(m_Node.doubleSidedMode, evt.newValue))
-                return;
+            //if (Equals(m_Node.doubleSidedMode, evt.newValue))
+            //    return;
 
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Double Sided Mode Change");
-            m_Node.doubleSidedMode = (DoubleSidedMode)evt.newValue;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("Double Sided Mode Change");
+            //m_Node.doubleSidedMode = (DoubleSidedMode)evt.newValue;
         }
 
         void ChangeMaterialType(ChangeEvent<Enum> evt)
         {
-            if (Equals(m_Node.materialType, evt.newValue))
-                return;
+            //if (Equals(m_Node.materialType, evt.newValue))
+            //    return;
 
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Material Type Change");
-            m_Node.materialType = (DecalMasterNode.MaterialType)evt.newValue;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("Material Type Change");
+            //m_Node.materialType = (DecalMasterNode.MaterialType)evt.newValue;
         }
 
         void ChangeTransmission(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Transmission Change");
-            ToggleData td = m_Node.transmission;
-            td.isOn = evt.newValue;
-            m_Node.transmission = td;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("Transmission Change");
+            //ToggleData td = m_Node.transmission;
+            //td.isOn = evt.newValue;
+            //m_Node.transmission = td;
         }
 
         void ChangeSubsurfaceScattering(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("SSS Change");
-            ToggleData td = m_Node.subsurfaceScattering;
-            td.isOn = evt.newValue;
-            m_Node.subsurfaceScattering = td;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("SSS Change");
+            //ToggleData td = m_Node.subsurfaceScattering;
+            //td.isOn = evt.newValue;
+            //m_Node.subsurfaceScattering = td;
         }
 
         void ChangeBlendMode(ChangeEvent<Enum> evt)
         {
             // Make sure the mapping is correct by handling each case.
-            AlphaMode alphaMode = GetAlphaMode((DecalMasterNode.AlphaModeDecal)evt.newValue);
+            //AlphaMode alphaMode = GetAlphaMode((DecalMasterNode.AlphaModeDecal)evt.newValue);
 
-            if (Equals(m_Node.alphaMode, alphaMode))
-                return;
+            //if (Equals(m_Node.alphaMode, alphaMode))
+            //    return;
 
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Mode Change");
-            m_Node.alphaMode = alphaMode;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Mode Change");
+            //m_Node.alphaMode = alphaMode;
         }
 
         void ChangeBlendPreserveSpecular(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Blend Preserve Specular Change");
-            ToggleData td = m_Node.blendPreserveSpecular;
-            td.isOn = evt.newValue;
-            m_Node.blendPreserveSpecular = td;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("Blend Preserve Specular Change");
+            //ToggleData td = m_Node.blendPreserveSpecular;
+            //td.isOn = evt.newValue;
+            //m_Node.blendPreserveSpecular = td;
         }
 
         void ChangeTransparencyFog(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Transparency Fog Change");
-            ToggleData td = m_Node.transparencyFog;
-            td.isOn = evt.newValue;
-            m_Node.transparencyFog = td;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("Transparency Fog Change");
+            //ToggleData td = m_Node.transparencyFog;
+            //td.isOn = evt.newValue;
+            //m_Node.transparencyFog = td;
         }
 
         void ChangeBackThenFrontRendering(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Back Then Front Rendering Change");
-            ToggleData td = m_Node.backThenFrontRendering;
-            td.isOn = evt.newValue;
-            m_Node.backThenFrontRendering = td;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("Back Then Front Rendering Change");
+            //ToggleData td = m_Node.backThenFrontRendering;
+            //td.isOn = evt.newValue;
+            //m_Node.backThenFrontRendering = td;
         }
 
         void ChangeSortPriority(ChangeEvent<int> evt)
         {
-            m_Node.sortPriority = Math.Max(-HDRenderQueue.k_TransparentPriorityQueueRange, Math.Min(evt.newValue, HDRenderQueue.k_TransparentPriorityQueueRange));
-            // Force the text to match.
-            m_SortPiorityField.value = m_Node.sortPriority;
-            if (Equals(m_Node.sortPriority, evt.newValue))
-                return;
+            //m_Node.sortPriority = Math.Max(-HDRenderQueue.k_TransparentPriorityQueueRange, Math.Min(evt.newValue, HDRenderQueue.k_TransparentPriorityQueueRange));
+            //// Force the text to match.
+            //m_SortPiorityField.value = m_Node.sortPriority;
+            //if (Equals(m_Node.sortPriority, evt.newValue))
+            //    return;
 
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Sort Priority Change");
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("Sort Priority Change");
         }
 
         void ChangeAlphaTest(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Change");
-            ToggleData td = m_Node.alphaTest;
-            td.isOn = evt.newValue;
-            m_Node.alphaTest = td;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Change");
+            //ToggleData td = m_Node.alphaTest;
+            //td.isOn = evt.newValue;
+            //m_Node.alphaTest = td;
         }
 
         void ChangeAlphaTestPrepass(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Depth Prepass Change");
-            ToggleData td = m_Node.alphaTestDepthPrepass;
-            td.isOn = evt.newValue;
-            m_Node.alphaTestDepthPrepass = td;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Depth Prepass Change");
+            //ToggleData td = m_Node.alphaTestDepthPrepass;
+            //td.isOn = evt.newValue;
+            //m_Node.alphaTestDepthPrepass = td;
         }
 
         void ChangeAlphaTestPostpass(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Depth Postpass Change");
-            ToggleData td = m_Node.alphaTestDepthPostpass;
-            td.isOn = evt.newValue;
-            m_Node.alphaTestDepthPostpass = td;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Depth Postpass Change");
+            //ToggleData td = m_Node.alphaTestDepthPostpass;
+            //td.isOn = evt.newValue;
+            //m_Node.alphaTestDepthPostpass = td;
         }
 
         void ChangeDecal(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Decal Change");
-            ToggleData td = m_Node.receiveDecals;
-            td.isOn = evt.newValue;
-            m_Node.receiveDecals = td;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("Decal Change");
+            //ToggleData td = m_Node.receiveDecals;
+            //td.isOn = evt.newValue;
+            //m_Node.receiveDecals = td;
         }
 
         void ChangeSSR(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("SSR Change");
-            ToggleData td = m_Node.receiveSSR;
-            td.isOn = evt.newValue;
-            m_Node.receiveSSR = td;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("SSR Change");
+            //ToggleData td = m_Node.receiveSSR;
+            //td.isOn = evt.newValue;
+            //m_Node.receiveSSR = td;
         }
 
         void ChangeEnergyConservingSpecular(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Energy Conserving Specular Change");
-            ToggleData td = m_Node.energyConservingSpecular;
-            td.isOn = evt.newValue;
-            m_Node.energyConservingSpecular = td;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("Energy Conserving Specular Change");
+            //ToggleData td = m_Node.energyConservingSpecular;
+            //td.isOn = evt.newValue;
+            //m_Node.energyConservingSpecular = td;
         }
 
         void ChangeSpecularOcclusionMode(ChangeEvent<Enum> evt)
         {
-            if (Equals(m_Node.specularOcclusionMode, evt.newValue))
-                return;
+            //if (Equals(m_Node.specularOcclusionMode, evt.newValue))
+            //    return;
 
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Specular Occlusion Mode Change");
-            m_Node.specularOcclusionMode = (SpecularOcclusionMode)evt.newValue;
+            //m_Node.owner.owner.RegisterCompleteObjectUndo("Specular Occlusion Mode Change");
+            //m_Node.specularOcclusionMode = (SpecularOcclusionMode)evt.newValue;
         }
 
-        public AlphaMode GetAlphaMode(DecalMasterNode.AlphaModeDecal alphaModeLit)
-        {
-            switch (alphaModeLit)
-            {
-                case DecalMasterNode.AlphaModeDecal.Alpha:
-                    return AlphaMode.Alpha;
-                case DecalMasterNode.AlphaModeDecal.PremultipliedAlpha:
-                    return AlphaMode.Premultiply;
-                case DecalMasterNode.AlphaModeDecal.Additive:
-                    return AlphaMode.Additive;
-                default:
-                    {
-                        Debug.LogWarning("Not supported: " + alphaModeLit);
-                        return AlphaMode.Alpha;
-                    }
+        //public AlphaMode GetAlphaMode(DecalMasterNode.AlphaModeDecal alphaModeLit)
+        //{
+        //    switch (alphaModeLit)
+        //    {
+        //        case DecalMasterNode.AlphaModeDecal.Alpha:
+        //            return AlphaMode.Alpha;
+        //        case DecalMasterNode.AlphaModeDecal.PremultipliedAlpha:
+        //            return AlphaMode.Premultiply;
+        //        case DecalMasterNode.AlphaModeDecal.Additive:
+        //            return AlphaMode.Additive;
+        //        default:
+        //            {
+        //                Debug.LogWarning("Not supported: " + alphaModeLit);
+        //                return AlphaMode.Alpha;
+        //            }
 
-            }
-        }
+        //    }
+        //}
 
-        public DecalMasterNode.AlphaModeDecal GetAlphaModeLit(AlphaMode alphaMode)
-        {
-            switch (alphaMode)
-            {
-                case AlphaMode.Alpha:
-                    return DecalMasterNode.AlphaModeDecal.Alpha;
-                case AlphaMode.Premultiply:
-                    return DecalMasterNode.AlphaModeDecal.PremultipliedAlpha;
-                case AlphaMode.Additive:
-                    return DecalMasterNode.AlphaModeDecal.Additive;
-                default:
-                    {
-                        Debug.LogWarning("Not supported: " + alphaMode);
-                        return DecalMasterNode.AlphaModeDecal.Alpha;
-                    }
-            }
-        }
+        //public DecalMasterNode.AlphaModeDecal GetAlphaModeLit(AlphaMode alphaMode)
+        //{
+        //    switch (alphaMode)
+        //    {
+        //        case AlphaMode.Alpha:
+        //            return DecalMasterNode.AlphaModeDecal.Alpha;
+        //        case AlphaMode.Premultiply:
+        //            return DecalMasterNode.AlphaModeDecal.PremultipliedAlpha;
+        //        case AlphaMode.Additive:
+        //            return DecalMasterNode.AlphaModeDecal.Additive;
+        //        default:
+        //            {
+        //                Debug.LogWarning("Not supported: " + alphaMode);
+        //                return DecalMasterNode.AlphaModeDecal.Alpha;
+        //            }
+        //    }
+        //}
     }
 }

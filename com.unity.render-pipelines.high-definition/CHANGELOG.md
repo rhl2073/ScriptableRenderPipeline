@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added new API to perform a camera rendering
 - Add suport for hair master node (Double kajiya kay - Lambert)
 - Added Reset behaviour in DebugMenu (ingame mapping is right joystick + B)
+- Added new UI for decal material to allow remapping and scaling of some properties
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed windows and in-game DebugMenu sync.
 - Fixed FrameSettings' LitShaderMode sync when opening DebugMenu.
 - Fixed Metal specific issues with decals, hitting a sampler limit and compiling AxF shader
+- Fixed an issue with flipped depth buffer during postprocessing
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).

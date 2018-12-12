@@ -8,6 +8,51 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class DecalSubShader : IDecalSubShader
     {
+        Pass m_PassMesh = new Pass()
+        {
+            Name = "DBufferMesh",
+            LightMode = "DBufferMesh",
+            TemplateName = "DecalPass.template",
+            MaterialName = "Decal",
+            ShaderPassName = "SHADERPASS_DBUFFER_MESH",
+
+            Includes = new List<string>()
+            {
+//                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl\""
+            },
+
+            RequiredFields = new List<string>()
+            {
+                "AttributesMesh.normalOS",
+                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
+                "AttributesMesh.uv0",
+            },
+
+            PixelShaderSlots = new List<int>()
+            {
+                DecalMasterNode.AlbedoSlotId,
+                DecalMasterNode.NormalSlotId,
+                DecalMasterNode.MetallicSlotId,
+                DecalMasterNode.SmoothnessSlotId,
+                DecalMasterNode.AmbientOcclusionSlotId,
+                DecalMasterNode.AlphaSlotId,
+                DecalMasterNode.BaseColorOpacitySlotId,
+                DecalMasterNode.NormaOpacitySlotId,
+                DecalMasterNode.MetallicOpacitySlotId,
+                DecalMasterNode.AmbientOcclusionOpacitySlotId,
+                DecalMasterNode.SmoothnessOpacitySlotId,
+            },
+
+            VertexShaderSlots = new List<int>()
+            {
+                //                DecalMasterNode.PositionSlotId
+            },
+            UseInPreview = true
+        };
+
+
         Pass m_PassMETA = new Pass()
         {
             Name = "META",
@@ -32,19 +77,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 DecalMasterNode.AlbedoSlotId,
-                DecalMasterNode.SpecularOcclusionSlotId,
                 DecalMasterNode.NormalSlotId,
                 DecalMasterNode.SmoothnessSlotId,
                 DecalMasterNode.AmbientOcclusionSlotId,
-                DecalMasterNode.SpecularColorSlotId,
-                DecalMasterNode.DiffusionProfileSlotId,
-                DecalMasterNode.SubsurfaceMaskSlotId,
-                DecalMasterNode.ThicknessSlotId,
-                DecalMasterNode.TangentSlotId,
-                DecalMasterNode.AnisotropySlotId,
-                DecalMasterNode.EmissionSlotId,
                 DecalMasterNode.AlphaSlotId,
-                DecalMasterNode.AlphaClipThresholdSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -74,7 +110,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 DecalMasterNode.AlphaSlotId,
-                DecalMasterNode.AlphaClipThresholdSlotId
             },
             VertexShaderSlots = new List<int>()
             {
@@ -102,7 +137,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 DecalMasterNode.AlphaSlotId,
-                DecalMasterNode.AlphaClipThresholdSlotId
             },
             VertexShaderSlots = new List<int>()
             {
@@ -135,7 +169,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 DecalMasterNode.NormalSlotId,
                 DecalMasterNode.SmoothnessSlotId,
                 DecalMasterNode.AlphaSlotId,
-                DecalMasterNode.AlphaClipThresholdSlotId
             },
 
             RequiredFields = new List<string>()
@@ -165,27 +198,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
-                var masterNode = node as DecalMasterNode;
 
-                int stencilDepthPrepassWriteMask = masterNode.receiveDecals.isOn ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer:0;
-                int stencilDepthPrepassRef = masterNode.receiveDecals.isOn ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer:0;
-                stencilDepthPrepassWriteMask |= !masterNode.receiveSSR.isOn ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
-                stencilDepthPrepassRef |= !masterNode.receiveSSR.isOn ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
+                //var masterNode = node as DecalMasterNode;
 
-                if (stencilDepthPrepassWriteMask != 0)
-                {
-                    pass.StencilOverride = new List<string>()
-                    {
-                        "// Stencil setup",
-                        "Stencil",
-                        "{",
-                        string.Format("   WriteMask {0}", stencilDepthPrepassWriteMask),
-                        string.Format("   Ref  {0}", stencilDepthPrepassRef),
-                        "   Comp Always",
-                        "   Pass Replace",
-                        "}"
-                    };
-                }
+                //int stencilDepthPrepassWriteMask = masterNode.receiveDecals.isOn ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer:0;
+                //int stencilDepthPrepassRef = masterNode.receiveDecals.isOn ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer:0;
+                //stencilDepthPrepassWriteMask |= !masterNode.receiveSSR.isOn ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
+                //stencilDepthPrepassRef |= !masterNode.receiveSSR.isOn ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
+
+                //if (stencilDepthPrepassWriteMask != 0)
+                //{
+                //    pass.StencilOverride = new List<string>()
+                //    {
+                //        "// Stencil setup",
+                //        "Stencil",
+                //        "{",
+                //        string.Format("   WriteMask {0}", stencilDepthPrepassWriteMask),
+                //        string.Format("   Ref  {0}", stencilDepthPrepassRef),
+                //        "   Comp Always",
+                //        "   Pass Replace",
+                //        "}"
+                //    };
+                //}
             }           
         };
 
@@ -228,7 +262,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 DecalMasterNode.NormalSlotId,
                 DecalMasterNode.SmoothnessSlotId,
                 DecalMasterNode.AlphaSlotId,
-                DecalMasterNode.AlphaClipThresholdSlotId
             },
             VertexShaderSlots = new List<int>()
             {
@@ -301,20 +334,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 DecalMasterNode.AlbedoSlotId,
-                DecalMasterNode.SpecularOcclusionSlotId,
                 DecalMasterNode.NormalSlotId,
-                DecalMasterNode.BentNormalSlotId,
                 DecalMasterNode.SmoothnessSlotId,
                 DecalMasterNode.AmbientOcclusionSlotId,
-                DecalMasterNode.SpecularColorSlotId,
-                DecalMasterNode.DiffusionProfileSlotId,
-                DecalMasterNode.SubsurfaceMaskSlotId,
-                DecalMasterNode.ThicknessSlotId,
-                DecalMasterNode.TangentSlotId,
-                DecalMasterNode.AnisotropySlotId,
-                DecalMasterNode.EmissionSlotId,
                 DecalMasterNode.AlphaSlotId,
-                DecalMasterNode.AlphaClipThresholdSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -325,28 +348,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as DecalMasterNode;
-                pass.StencilOverride = new List<string>()
-                {
-                    "// Stencil setup",
-                    "Stencil",
-                    "{",
-                    string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.LightingMask),
-                    string.Format("   Ref  {0}", masterNode.RequiresSplitLighting() ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting),
-                    "   Comp Always",
-                    "   Pass Replace",
-                    "}"
-                };
+                //pass.StencilOverride = new List<string>()
+                //{
+                //    "// Stencil setup",
+                //    "Stencil",
+                //    "{",
+                //    string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.LightingMask),
+                //    string.Format("   Ref  {0}", masterNode.RequiresSplitLighting() ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting),
+                //    "   Comp Always",
+                //    "   Pass Replace",
+                //    "}"
+                //};
 
-                pass.ExtraDefines.Remove("#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST");
-                if (masterNode.surfaceType == SurfaceType.Opaque && masterNode.alphaTest.isOn)
-                {
-                    pass.ExtraDefines.Add("#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST");
-                    pass.ZTestOverride = "ZTest Equal";
-                }
-                else
-                {
-                    pass.ZTestOverride = null;
-                }
+                //pass.ExtraDefines.Remove("#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST");
+                //if (masterNode.surfaceType == SurfaceType.Opaque && masterNode.alphaTest.isOn)
+                //{
+                //    pass.ExtraDefines.Add("#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST");
+                //    pass.ZTestOverride = "ZTest Equal";
+                //}
+                //else
+                //{
+                //    pass.ZTestOverride = null;
+                //}
             }
         };
 
@@ -360,145 +383,145 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return activeFields;
             }
 
-            if (masterNode.doubleSidedMode != DoubleSidedMode.Disabled)
-            {
-                activeFields.Add("DoubleSided");
-                if (pass.ShaderPassName != "SHADERPASS_VELOCITY")   // HACK to get around lack of a good interpolator dependency system
-                {                                                   // we need to be able to build interpolators using multiple input structs
-                                                                    // also: should only require isFrontFace if Normals are required...
-                    if (masterNode.doubleSidedMode == DoubleSidedMode.FlippedNormals)
-                    {
-                        activeFields.Add("DoubleSided.Flip");
-                    }
-                    else if (masterNode.doubleSidedMode == DoubleSidedMode.MirroredNormals)
-                    {
-                        activeFields.Add("DoubleSided.Mirror");
-                    }
-                    // Important: the following is used in SharedCode.template.hlsl for determining the normal flip mode
-                    activeFields.Add("FragInputs.isFrontFace");
-                }
-            }
+            //if (masterNode.doubleSidedMode != DoubleSidedMode.Disabled)
+            //{
+            //    activeFields.Add("DoubleSided");
+            //    if (pass.ShaderPassName != "SHADERPASS_VELOCITY")   // HACK to get around lack of a good interpolator dependency system
+            //    {                                                   // we need to be able to build interpolators using multiple input structs
+            //                                                        // also: should only require isFrontFace if Normals are required...
+            //        if (masterNode.doubleSidedMode == DoubleSidedMode.FlippedNormals)
+            //        {
+            //            activeFields.Add("DoubleSided.Flip");
+            //        }
+            //        else if (masterNode.doubleSidedMode == DoubleSidedMode.MirroredNormals)
+            //        {
+            //            activeFields.Add("DoubleSided.Mirror");
+            //        }
+            //        // Important: the following is used in SharedCode.template.hlsl for determining the normal flip mode
+            //        activeFields.Add("FragInputs.isFrontFace");
+            //    }
+            //}
 
-            switch (masterNode.materialType)
-            {
-                case DecalMasterNode.MaterialType.CottonWool:
-                    activeFields.Add("Material.CottonWool");
-                    break;
-                case DecalMasterNode.MaterialType.Silk:
-                    activeFields.Add("Material.Silk");
-                    break;
-                default:
-                    UnityEngine.Debug.LogError("Unknown material type: " + masterNode.materialType);
-                    break;
-            }
+            //switch (masterNode.materialType)
+            //{
+            //    case DecalMasterNode.MaterialType.CottonWool:
+            //        activeFields.Add("Material.CottonWool");
+            //        break;
+            //    case DecalMasterNode.MaterialType.Silk:
+            //        activeFields.Add("Material.Silk");
+            //        break;
+            //    default:
+            //        UnityEngine.Debug.LogError("Unknown material type: " + masterNode.materialType);
+            //        break;
+            //}
 
-            if (masterNode.alphaTest.isOn)
-            {
-                if (pass.PixelShaderUsesSlot(DecalMasterNode.AlphaClipThresholdSlotId))
-                {
-                    activeFields.Add("AlphaTest");
-                }
-            }
+            //if (masterNode.alphaTest.isOn)
+            //{
+            //    if (pass.PixelShaderUsesSlot(DecalMasterNode.AlphaClipThresholdSlotId))
+            //    {
+            //        activeFields.Add("AlphaTest");
+            //    }
+            //}
 
-            if (masterNode.surfaceType != SurfaceType.Opaque)
-            {
-                activeFields.Add("SurfaceType.Transparent");
+            //if (masterNode.surfaceType != SurfaceType.Opaque)
+            //{
+            //    activeFields.Add("SurfaceType.Transparent");
 
-                if (masterNode.alphaMode == AlphaMode.Alpha)
-                {
-                    activeFields.Add("BlendMode.Alpha");
-                }
-                else if (masterNode.alphaMode == AlphaMode.Premultiply)
-                {
-                    activeFields.Add("BlendMode.Premultiply");
-                }
-                else if (masterNode.alphaMode == AlphaMode.Additive)
-                {
-                    activeFields.Add("BlendMode.Add");
-                }
+            //    if (masterNode.alphaMode == AlphaMode.Alpha)
+            //    {
+            //        activeFields.Add("BlendMode.Alpha");
+            //    }
+            //    else if (masterNode.alphaMode == AlphaMode.Premultiply)
+            //    {
+            //        activeFields.Add("BlendMode.Premultiply");
+            //    }
+            //    else if (masterNode.alphaMode == AlphaMode.Additive)
+            //    {
+            //        activeFields.Add("BlendMode.Add");
+            //    }
 
-                if (masterNode.blendPreserveSpecular.isOn)
-                {
-                    activeFields.Add("BlendMode.PreserveSpecular");
-                }
+            //    if (masterNode.blendPreserveSpecular.isOn)
+            //    {
+            //        activeFields.Add("BlendMode.PreserveSpecular");
+            //    }
 
-                if (masterNode.transparencyFog.isOn)
-                {
-                    activeFields.Add("AlphaFog");
-                }
-            }
+            //    if (masterNode.transparencyFog.isOn)
+            //    {
+            //        activeFields.Add("AlphaFog");
+            //    }
+            //}
 
-            if (!masterNode.receiveDecals.isOn)
-            {
-                activeFields.Add("DisableDecals");
-            }
+            //if (!masterNode.receiveDecals.isOn)
+            //{
+            //    activeFields.Add("DisableDecals");
+            //}
 
-            if (!masterNode.receiveSSR.isOn)
-            {
-                activeFields.Add("DisableSSR");
-            }
+            //if (!masterNode.receiveSSR.isOn)
+            //{
+            //    activeFields.Add("DisableSSR");
+            //}
 
-            if (masterNode.energyConservingSpecular.isOn)
-            {
-                activeFields.Add("Specular.EnergyConserving");
-            }
+            //if (masterNode.energyConservingSpecular.isOn)
+            //{
+            //    activeFields.Add("Specular.EnergyConserving");
+            //}
 
-            if (masterNode.transmission.isOn)
-            {
-                activeFields.Add("Material.Transmission");
-            }
+            //if (masterNode.transmission.isOn)
+            //{
+            //    activeFields.Add("Material.Transmission");
+            //}
 
-            if (masterNode.subsurfaceScattering.isOn && masterNode.surfaceType != SurfaceType.Transparent)
-            {
-                activeFields.Add("Material.SubsurfaceScattering");
-            }
+            //if (masterNode.subsurfaceScattering.isOn && masterNode.surfaceType != SurfaceType.Transparent)
+            //{
+            //    activeFields.Add("Material.SubsurfaceScattering");
+            //}
 
-            if (masterNode.IsSlotConnected(DecalMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(DecalMasterNode.BentNormalSlotId))
-            {
-                activeFields.Add("BentNormal");
-            }
+            //if (masterNode.IsSlotConnected(DecalMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(DecalMasterNode.BentNormalSlotId))
+            //{
+            //    activeFields.Add("BentNormal");
+            //}
 
-            if (masterNode.IsSlotConnected(DecalMasterNode.TangentSlotId) && pass.PixelShaderUsesSlot(DecalMasterNode.TangentSlotId))
-            {
-                activeFields.Add("Tangent");
-            }
+            //if (masterNode.IsSlotConnected(DecalMasterNode.TangentSlotId) && pass.PixelShaderUsesSlot(DecalMasterNode.TangentSlotId))
+            //{
+            //    activeFields.Add("Tangent");
+            //}
 
-            switch (masterNode.specularOcclusionMode)
-            {
-                case SpecularOcclusionMode.Off:
-                    break;
-                case SpecularOcclusionMode.FromAO:
-                    activeFields.Add("SpecularOcclusionFromAO");
-                    break;
-                case SpecularOcclusionMode.FromAOAndBentNormal:
-                    activeFields.Add("SpecularOcclusionFromAOBentNormal");
-                    break;
-                case SpecularOcclusionMode.Custom:
-                    activeFields.Add("SpecularOcclusionCustom");
-                    break;
-                default:
-                    break;
-            }
+            //switch (masterNode.specularOcclusionMode)
+            //{
+            //    case SpecularOcclusionMode.Off:
+            //        break;
+            //    case SpecularOcclusionMode.FromAO:
+            //        activeFields.Add("SpecularOcclusionFromAO");
+            //        break;
+            //    case SpecularOcclusionMode.FromAOAndBentNormal:
+            //        activeFields.Add("SpecularOcclusionFromAOBentNormal");
+            //        break;
+            //    case SpecularOcclusionMode.Custom:
+            //        activeFields.Add("SpecularOcclusionCustom");
+            //        break;
+            //    default:
+            //        break;
+            //}
 
-            if (pass.PixelShaderUsesSlot(DecalMasterNode.AmbientOcclusionSlotId))
-            {
-                var occlusionSlot = masterNode.FindSlot<Vector1MaterialSlot>(DecalMasterNode.AmbientOcclusionSlotId);
+            //if (pass.PixelShaderUsesSlot(DecalMasterNode.AmbientOcclusionSlotId))
+            //{
+            //    var occlusionSlot = masterNode.FindSlot<Vector1MaterialSlot>(DecalMasterNode.AmbientOcclusionSlotId);
 
-                bool connected = masterNode.IsSlotConnected(DecalMasterNode.AmbientOcclusionSlotId);
-                if (connected || occlusionSlot.value != occlusionSlot.defaultValue)
-                {
-                    activeFields.Add("AmbientOcclusion");
-                }
-            }
+            //    bool connected = masterNode.IsSlotConnected(DecalMasterNode.AmbientOcclusionSlotId);
+            //    if (connected || occlusionSlot.value != occlusionSlot.defaultValue)
+            //    {
+            //        activeFields.Add("AmbientOcclusion");
+            //    }
+            //}
 
             return activeFields;
         }
 
-        private static bool GenerateShaderPassLit(DecalMasterNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
+        private static bool GenerateShaderPass(DecalMasterNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             if (mode == GenerationMode.ForReals || pass.UseInPreview)
             {
-                SurfaceMaterialOptions materialOptions = HDSubShaderUtilities.BuildMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.doubleSidedMode != DoubleSidedMode.Disabled, false);
+                SurfaceMaterialOptions materialOptions = HDSubShaderUtilities.BuildMaterialOptions(SurfaceType.Opaque, AlphaMode.Alpha, false, false);
 
                 pass.OnGeneratePass(masterNode);
 
@@ -532,7 +555,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             {
-                SurfaceMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, masterNode.alphaTest.isOn, false, masterNode.sortPriority);
+                SurfaceMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(SurfaceType.Opaque, false, false, 0);
 
                 // Add tags at the SubShader level
                 {
@@ -541,28 +564,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     subShader.AddShaderChunk(tagsVisitor.ToString(), false);
                 }
 
-                // generate the necessary shader passes
-                bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
-                bool transparent = !opaque;
-
-                GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
-
-                if (opaque)
-                {
-                    GenerateShaderPassLit(masterNode, m_PassDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
-                }
-
-                GenerateShaderPassLit(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);
-
-                GenerateShaderPassLit(masterNode, m_PassForwardOnly, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(masterNode, m_PassMesh, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.DecalGUI""");
-
-            return subShader.GetShaderString(0);
+            string s = subShader.GetShaderString(0);
+            return s;
         }
 
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
