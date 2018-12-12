@@ -13,6 +13,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable, VolumeComponentMenu("Post-processing/Motion Blur")]
     public sealed class MotionBlur : VolumeComponent, IPostProcessComponent
     {
+        public MinIntParameter sampleCount = new MinIntParameter(32, 2);
+
 
         // Physical settings
         public MinFloatParameter intensity = new MinFloatParameter(20.0f, 0.0f);

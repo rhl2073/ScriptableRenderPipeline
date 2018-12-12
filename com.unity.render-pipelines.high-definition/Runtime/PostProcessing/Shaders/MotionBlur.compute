@@ -64,7 +64,7 @@ float SampleWeight(float centralDepth, float sampleDepth, float offsetLength, fl
     return dot(depthWeights, spread);
 }
 
-#define DEBUG_VIEW 1
+#define DEBUG_VIEW 0
 
 
 [numthreads(8,8,1)]
@@ -74,25 +74,35 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 debugColor = 1.0f;
 
     // Get central sample early.
-    float3 centralColor = _InputTexture[dispatchThreadId.xy];
+    float3 centralColor = _InputTexture[dispatchThreadId.xy].xyz;
 
     float2 tileUV = GetTileUV(dispatchThreadId.xy);
     float3 tileMaxAndMinLength = SAMPLE_TEXTURE2D_LOD(_TileMinMaxVel, s_point_clamp_sampler, tileUV, 0.0f);
     float2 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0f);
 
     // Get velocity in pixels extents.
+    float2 maxVel = DecodeVelocityFromPacked(tileMaxAndMinLength.xy);
     float maxVelLength = VelocityLengthFromEncoded(tileMaxAndMinLength.xy);
     float maxVelLengthSq = maxVelLength * maxVelLength;
     float screenMagnitude = dot(_ScreenSize.xy, _ScreenSize.xy);
     float maxVelLengthSqInPixels = maxVelLengthSq * screenMagnitude;
     float minVelLengthSqInPixels = tileMaxAndMinLength.z * tileMaxAndMinLength.z * screenMagnitude;
 
+    bool earlyOut = maxVelLengthSqInPixels <= _MinSqVelThreshold;
+
+#if defined(SUPPORTS_WAVE_INTRINSICS)
+    bool fastPath = WaveActiveAllTrue(minVelLengthSqInPixels > (_MinMaxSqVelRatioForSlowPath * maxVelLengthSqInPixels));
+#else
+    // TODO: force it scalar with interlocked add or something like that (it is not always due to the jittering)
+    bool fastPath = minVelLengthSqInPixels > (_MinMaxSqVelRatioForSlowPath * maxVelLengthSqInPixels);
+#endif
+
 #if DEBUG_VIEW
-    if (maxVelLengthSqInPixels <= _MinSqVelThreshold)
+    if (earlyOut)
     {
         debugColor = float3(0, 1, 0);
     }
-    else if (minVelLengthSqInPixels > _MinMaxSqVelRatioForSlowPath * maxVelLengthSqInPixels)
+    else if (fastPath)
     {
         debugColor = float3(1, 1, 0);
     }
@@ -104,6 +114,47 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     _OutputTexture[dispatchThreadId.xy] = 0.25f * centralColor + 0.75f * debugColor.xyz;
 
 #else
-    _OutputTexture[dispatchThreadId.xy] = tileMaxAndMinLength.xyz;
+
+    float3 outVal = 1;
+    if (earlyOut)
+    {
+        outVal = centralColor;
+    }
+
+    const int iterationCount = _SampleCount / 2;
+    const float invIterationCount = 1.0f / iterationCount;
+
+    float2 centerSampleUV = (0.5f + dispatchThreadId.xy) * _ScreenSize.zw;
+    float2 maxVelNDC = DecodeVelocityFromPacked(tileMaxAndMinLength.xy);
+
+    float3 accumulatedColor = 0.0f;
+    if (fastPath || true)
+    {
+        float randomVal = RandomValue(dispatchThreadId.xy, 2);     // TODO_FCC: Animate?
+
+
+        float2 forwardDir = 0.5f * maxVel;
+        float2 backwardDir = -0.5f * maxVel;
+
+        for (int i = 0; i < iterationCount; ++i)
+        {
+            float forwardSampleOffset = (i + randomVal) * invIterationCount;
+            float backwardSampleOffset = ((1.0f + i) - randomVal) * invIterationCount;
+
+            float2 forwardSampleUV = centerSampleUV + forwardSampleOffset * forwardDir;
+            float2 backwardSampleUV = centerSampleUV + backwardSampleOffset * backwardDir;
+
+            // Both forward and back in time.
+            accumulatedColor += SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, forwardSampleUV, 0).xyz;
+            accumulatedColor += SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, backwardSampleUV, 0).xyz;
+        }
+
+        accumulatedColor *= 0.5f * invIterationCount;
+    }
+
+
+    _OutputTexture[dispatchThreadId.xy] = accumulatedColor;
+  //  _OutputTexture[dispatchThreadId.xy] = tileMaxAndMinLength.xyx;
+
 #endif
 }

@@ -1177,8 +1177,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector2 tileTexScale = new Vector2((float)tileTexWidth / camera.actualWidth, (float)tileTexHeight / camera.actualHeight);
             Vector4 tileTargetSize = new Vector4(tileTexWidth, tileTexHeight, 1.0f / tileTexWidth, 1.0f / tileTexHeight);
 
-            RTHandle preppedVelocity = m_Pool.Get(Vector2.one, RenderTextureFormat.RGB111110Float);
-            RTHandle minMaxTileVel = m_Pool.Get(tileTexScale, RenderTextureFormat.RGB111110Float);
+            RTHandle preppedVelocity = m_Pool.Get(Vector2.one, RenderTextureFormat.ARGBHalf);
+            RTHandle minMaxTileVel = m_Pool.Get(tileTexScale, RenderTextureFormat.ARGBHalf);
             RTHandle maxTileNeigbourhood = m_Pool.Get(tileTexScale, RenderTextureFormat.RGHalf);
 
             // -----------------------------------------------------------------------------
@@ -1187,6 +1187,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // - Move velocity to pixel space rather than world.
             // - Pack normalized velocity and linear depth in R11G11B10
             // TODO_FCC: Find better velocity encoding.
+            // TODO_FCC: Find encoding again, for now brute force it to half.
             var cs = m_Resources.shaders.motionBlurVelocityPrepCS;
             int kernel = cs.FindKernel("VelPreppingCS");
             int threadGroupX = (camera.actualWidth + 7) / 8;
@@ -1227,6 +1228,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeFloatParam(cs, HDShaderIDs._MinSqVelThreshold, m_MotionBlur.minVelSqInPixels);
             cmd.SetComputeFloatParam(cs, HDShaderIDs._MinMaxSqVelRatioForSlowPath, m_MotionBlur.tileMinMaxVelSqRatioForHighQuality);
+            cmd.SetComputeIntParam(cs, HDShaderIDs._MotionBlurSampleCount, m_MotionBlur.sampleCount);
 
             threadGroupX = (camera.actualWidth + 7) / 8;
             threadGroupY = (camera.actualHeight + 7) / 8;

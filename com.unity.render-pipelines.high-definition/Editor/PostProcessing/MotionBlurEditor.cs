@@ -9,6 +9,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [VolumeComponentEditor(typeof(MotionBlur))]
     sealed class MotionBlurEditor : VolumeComponentEditor
     {
+        SerializedDataParameter m_SampleCount;
+
         SerializedDataParameter m_MinVelSqInPixels;
         SerializedDataParameter m_TileMinMaxVelSqRatioForHighQuality;
 
@@ -18,8 +20,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var o = new PropertyFetcher<MotionBlur>(serializedObject);
 
+            m_SampleCount = Unpack(o.Find(x => x.sampleCount));
             m_MinVelSqInPixels = Unpack(o.Find(x => x.minVelSqInPixels));
-
             m_TileMinMaxVelSqRatioForHighQuality = Unpack(o.Find(x => x.tileMinMaxVelSqRatioForHighQuality));
         }
 
@@ -28,6 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             bool advanced = isInAdvancedMode;
 
+            PropertyField(m_SampleCount);
             if (advanced)
             {
                 PropertyField(m_MinVelSqInPixels);
