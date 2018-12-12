@@ -10,12 +10,11 @@ void VelPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     float2 velocity;
     DecodeVelocity(LOAD_TEXTURE2D(_CameraMotionVectorsTexture, dispatchThreadId.xy), velocity);
-    float2 normalizedVel = VelocityToNormalized(velocity);
 
     // Compute linear depth
     float depth = SampleCameraDepth(dispatchThreadId);
     float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
 
 
-    _VelocityAndDepth[dispatchThreadId.xy] = float3(normalizedVel.x, normalizedVel.y, linearEyeDepth);
+    _VelocityAndDepth[dispatchThreadId.xy] = float3(EncodeVelocity(velocity), linearEyeDepth);
 }

@@ -1,0 +1,112 @@
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
+
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel MotionBlurCS
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float3> _OutputTexture;
+Texture2D _InputTexture;
+
+
+// ---------------------------------------------
+// Misc utils
+// ---------------------------------------------
+#define INTERLEAVED_GRADIENT_NOISE 0
+#define CHECKERBOARD 1
+#define DITHER_SCHEME INTERLEAVED_GRADIENT_NOISE
+
+float RandomValue(uint2 pixCoord, uint frameCount)
+{
+#if DITHER_SCHEME == INTERLEAVED_GRADIENT_NOISE
+    return InterleavedGradientNoise(pixCoord.xy, frameCount);
+#elif DITHER_SCHEME == CHECKERBOARD
+    float scale = 0.25f;
+    float2 posMod = float2 (pixCoord & 1);
+    return (-scale + 2.0f * scale * posMod.x) * (-1.0f + 2.0f * posMod.y);
+#endif
+    return 0.0f;
+}
+
+#define TILE_JITTER_MAGNITUDE 0.25
+
+// Maybe reuse the random outside. TODO_FCC: Check this.
+float2 GetTileUV(uint2 pixCoord)
+{
+    // TODO_FCC: Animate the jitter? 
+    float2 randomVals = float2(RandomValue(pixCoord, 0), RandomValue(pixCoord, 1));
+    float2 jitterBiasMul = float2(-2.0f, 2.0f) * TILE_JITTER_MAGNITUDE;
+    float2 tileJitter = (randomVals + jitterBiasMul.x) * jitterBiasMul.y; 
+
+    return ((pixCoord / TILE_SIZE) + tileJitter) * _TileTargetSize.zw;
+}
+
+// ---------------------------------------------
+// Weight functions
+// ---------------------------------------------
+
+// Return foreground and background weights
+float2 DepthCompare(float centralDepth, float sampleDepth, float depthScale)
+{
+    return saturate(0.5f + float2(depthScale, -depthScale) * (sampleDepth - centralDepth));
+}
+
+// Spread compare function
+float2 SpreadCompare(float offsetLength, float2 spreadLength, float pixelToSampleScale)
+{
+    return saturate(pixelToSampleScale * spreadLength - max(offsetLength - 1.0f, 0.0f));
+}
+
+float SampleWeight(float centralDepth, float sampleDepth, float offsetLength, float centralSpreadLength, float sampleSpreadLength, float pixelToSampleScale, float depthScale)
+{
+    float2 depthWeights = DepthCompare(centralDepth, sampleDepth, depthScale);
+    float2 spread = SpreadCompare(offsetLength, float2(centralSpreadLength, sampleSpreadLength), pixelToSampleScale);
+    return dot(depthWeights, spread);
+}
+
+#define DEBUG_VIEW 1
+
+
+[numthreads(8,8,1)]
+void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+
+    float3 debugColor = 1.0f;
+
+    // Get central sample early.
+    float3 centralColor = _InputTexture[dispatchThreadId.xy];
+
+    float2 tileUV = GetTileUV(dispatchThreadId.xy);
+    float3 tileMaxAndMinLength = SAMPLE_TEXTURE2D_LOD(_TileMinMaxVel, s_point_clamp_sampler, tileUV, 0.0f);
+    float2 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0f);
+
+    // Get velocity in pixels extents.
+    float maxVelLength = VelocityLengthFromEncoded(tileMaxAndMinLength.xy);
+    float maxVelLengthSq = maxVelLength * maxVelLength;
+    float screenMagnitude = dot(_ScreenSize.xy, _ScreenSize.xy);
+    float maxVelLengthSqInPixels = maxVelLengthSq * screenMagnitude;
+    float minVelLengthSqInPixels = tileMaxAndMinLength.z * tileMaxAndMinLength.z * screenMagnitude;
+
+    // TODO_FCC: Pass these constant via cbuffer
+    const float minSqLengthInPixelsToBlur = 0.5f;
+    const float diffRatioForFastPath = 0.5f;
+#if DEBUG_VIEW
+    if (maxVelLengthSqInPixels <= minSqLengthInPixelsToBlur)
+    {
+        debugColor = float3(0, 1, 0);
+    }
+    else if (minVelLengthSqInPixels > diffRatioForFastPath * maxVelLengthSqInPixels)
+    {
+        debugColor = float3(1, 1, 0);
+    }
+    else
+    {
+        debugColor = float3(1, 0, 0);
+    }
+
+    _OutputTexture[dispatchThreadId.xy] = 0.25f * centralColor + 0.75f * debugColor.xyz;
+
+#else
+    _OutputTexture[dispatchThreadId.xy] = tileMaxAndMinLength.xyz;
+#endif
+}

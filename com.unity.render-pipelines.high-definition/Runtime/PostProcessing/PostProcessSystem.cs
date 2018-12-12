@@ -288,8 +288,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     using (new ProfilingSample(cmd, "Motion Blur", CustomSamplerId.MotionBlur.GetSampler()))
                     {
-                        DoMotionBlur(cmd, camera, source, source);
-                     //   PoolSource(ref source, destination);
+                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                        DoMotionBlur(cmd, camera, source, destination);
+                        PoolSource(ref source, destination);
                     }
                 }
 
@@ -1174,11 +1175,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int tileTexWidth    = Mathf.CeilToInt(camera.actualWidth / tileSize);
             int tileTexHeight   = Mathf.CeilToInt(camera.actualHeight / tileSize);
             Vector2 tileTexScale = new Vector2((float)tileTexWidth / camera.actualWidth, (float)tileTexHeight / camera.actualHeight);
+            Vector4 tileTargetSize = new Vector4(tileTexWidth, tileTexHeight, 1.0f / tileTexWidth, 1.0f / tileTexHeight);
 
             RTHandle preppedVelocity = m_Pool.Get(Vector2.one, RenderTextureFormat.RGB111110Float);
             RTHandle minMaxTileVel = m_Pool.Get(tileTexScale, RenderTextureFormat.RGB111110Float);
             RTHandle maxTileNeigbourhood = m_Pool.Get(tileTexScale, RenderTextureFormat.RGHalf);
-
 
             // -----------------------------------------------------------------------------
             // Prep velocity
@@ -1202,8 +1203,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
             threadGroupX = (camera.actualWidth + (tileSize-1)) / tileSize;
-            threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize
-                ;
+            threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize;
             cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
 
             // -----------------------------------------------------------------------------
@@ -1213,14 +1213,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
             threadGroupX = (tileTexWidth  + 7) / 8;
-            threadGroupY = (camera.actualHeight + 7) / 8;
+            threadGroupY = (tileTexHeight + 7) / 8;
             cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
 
             // -----------------------------------------------------------------------------
             // Blur kernel
             cs = m_Resources.shaders.motionBlurCS;
-
-        
+            kernel = cs.FindKernel("MotionBlurCS");
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+            threadGroupX = (camera.actualWidth + 7) / 8;
+            threadGroupY = (camera.actualHeight + 7) / 8;
+            cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
 
             // -----------------------------------------------------------------------------
             // Recycle RTs
@@ -1228,7 +1235,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Pool.Recycle(minMaxTileVel);
             m_Pool.Recycle(maxTileNeigbourhood);
             m_Pool.Recycle(preppedVelocity);
-
 
 
         }

@@ -5,14 +5,6 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#ifdef GEN_PASS
-RWTexture2D<float3> _TileMinMaxVel;
-#elif NEIGHBOURHOOD_PASS
-Texture2D<float3> _TileMinMaxVel;
-#endif
-RWTexture2D<float2> _TileMaxNeighbourhood;
-
-
 #define USE_WAVE_INTRINSICS   0
 
 #ifdef SUPPORTS_WAVE_INTRINSICS
@@ -38,16 +30,6 @@ groupshared float2 gs_maxVel[((TILE_SIZE * TILE_SIZE))];
 
 #endif
 
-float2 MinVec(float2 v, float2 w)
-{
-	return dot(v, v) < dot(w, w) ? v : w;
-}
-
-float2 MaxVec(float2 v, float2 w)
-{
-	return dot(v, v) < dot(w, w) ? w : v;
-}
-
 // TODO_FCC: Do dispatch indirect for the fast pass. 
 
 #ifdef GEN_PASS 
@@ -55,16 +37,15 @@ float2 MaxVec(float2 v, float2 w)
 void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID: SV_GroupID)
 {
 //
-//    // This works only with multiple of 8 for TILE_SIZE. Also, not faster. TODO_FCC:  Verify if we can make it faster. Probably not. 
+//    // This works only with multiple of 8 for TILE_SIZE. Also, not faster. TODO_FCC:  Verify if we can make it faster. Probably not.
 #if defined(SUPPORTS_WAVE_INTRINSICS) && (USE_WAVE_INTRINSICS)
     uint waveCount = ((TILE_SIZE * TILE_SIZE) / WAVE_SIZE) + 1;
 
 	// This is a bit clunky... over complicated, but I am now curious.
 
 	float2 vel = LOAD_TEXTURE2D(_VelocityAndDepth, id.xy).xy;
-	float velLength = dot(vel, vel);
 	uint laneIdx = WaveGetLaneIndex();
-	uint PackedVelID = PackVelLengthAndLaneID(velLength, laneIdx);
+	uint PackedVelID = PackVelLengthAndLaneID(vel.x, laneIdx);
 
 	uint waveVelMin = WaveActiveMin(PackedVelID);
 	uint waveVelMax = WaveActiveMax(PackedVelID);
@@ -89,17 +70,18 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 
 	// Reduction across waves.
 	// TODO_FCC Verify this is all scalar.
-	float2 minVel = gs_minVel[0];
-	float2 maxVel = gs_maxVel[0];
+	float2 minVel = (gs_minVel[0]);
+	float2 maxVel = (gs_maxVel[0]);
 	for (int i = 1; i < waveCount; ++i)
 	{
-		minVel = MinVec(minVel, gs_minVel[i]);
-		maxVel = MaxVec(maxVel, gs_maxVel[i]);
+		minVel = MinVel(minVel, gs_minVel[i]);
+        maxVel = MaxVel (maxVel, gs_maxVel[i]);
 	}
 
     uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
     float minVelLengthSq = dot(minVel, minVel);
 
+    maxVel = maxVel;
     if (threadIdx == 0)
     {
         _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, minVelLengthSq);
@@ -121,8 +103,8 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
     {
         if (threadIdx < s)
         {
-            gs_minVel[threadIdx] = MinVec(gs_minVel[threadIdx], gs_minVel[threadIdx + s]);
-            gs_maxVel[threadIdx] = MaxVec(gs_maxVel[threadIdx], gs_maxVel[threadIdx + s]);
+            gs_minVel[threadIdx] = MinVel(gs_minVel[threadIdx], gs_minVel[threadIdx + s]);
+            gs_maxVel[threadIdx] = MaxVel(gs_maxVel[threadIdx], gs_maxVel[threadIdx + s]);
         }
 
         GroupMemoryBarrierWithGroupSync();
@@ -131,10 +113,9 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
     float2 minVel = gs_minVel[0];
     float2 maxVel = gs_maxVel[0];
 
-    float minVelLengthSq = dot(minVel, minVel);
     if (threadIdx == 0)
     {
-        _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, minVelLengthSq);
+        _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, VelocityLengthFromEncoded(minVel));
     }
 #endif
 
@@ -159,11 +140,11 @@ void TileNeighbourhood(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex,
     float2 v8       = _TileMinMaxVel[id.xy + uint2( 1, -1)].xy;
 
     // TODO_FCC Can we use Max3 somehow? 
-    float2 maxVel0 = MaxVec(v0, MaxVec(v1, v2));
-    float2 maxVel1 = MaxVec(v3, MaxVec(v4, v5));
-    float2 maxVel2 = MaxVec(v6, MaxVec(v7, v8));
+    float2 maxVel0 = MaxVel(v0, MaxVel(v1, v2));
+    float2 maxVel1 = MaxVel(v3, MaxVel(v4, v5));
+    float2 maxVel2 = MaxVel(v6, MaxVel(v7, v8));
 
-    _TileMaxNeighbourhood[id.xy] = MaxVec(maxVel0, MaxVec(maxVel1, maxVel2));
+    _TileMaxNeighbourhood[id.xy] = MaxVel(maxVel0, MaxVel(maxVel1, maxVel2));
 }
 
 #endif
