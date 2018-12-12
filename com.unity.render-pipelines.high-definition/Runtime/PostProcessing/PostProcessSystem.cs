@@ -1169,37 +1169,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // -----------------------------------------------------------------------------
             // Temporary targets prep
 
-            const int tileSize = 16;
-            int tileTexWidth    = Mathf.RoundToInt(camera.actualWidth / tileSize);
-            int tileTexHeight   = Mathf.RoundToInt(camera.actualHeight / tileSize);
+            const int tileSize = 16;        // Must match define on MotionBlurCommon - TODO_FCC: Set define from C#
+            // TODO_FCC: Round up the scale! 
+            int tileTexWidth    = Mathf.CeilToInt(camera.actualWidth / tileSize);
+            int tileTexHeight   = Mathf.CeilToInt(camera.actualHeight / tileSize);
+            Vector2 tileTexScale = new Vector2((float)tileTexWidth / camera.actualWidth, (float)tileTexHeight / camera.actualHeight);
 
-            RTHandle minMaxTileVel = m_Pool.Get(Vector2.one / tileSize, RenderTextureFormat.ARGBHalf);
-            RTHandle maxTileNeigbourhood = m_Pool.Get(Vector2.one / tileSize, RenderTextureFormat.RGHalf);
             RTHandle preppedVelocity = m_Pool.Get(Vector2.one, RenderTextureFormat.RGB111110Float);
+            RTHandle minMaxTileVel = m_Pool.Get(tileTexScale, RenderTextureFormat.RGB111110Float);
+            RTHandle maxTileNeigbourhood = m_Pool.Get(tileTexScale, RenderTextureFormat.RGHalf);
+
 
             // -----------------------------------------------------------------------------
             // Prep velocity
 
             // - Move velocity to pixel space rather than world.
-            // - Normalize for a maximum value (max blur radius... from settings? I think it should be tile size related). Then move to [0...1] 
             // - Pack normalized velocity and linear depth in R11G11B10
-            // TODO_FCC: Check that the max blur based on Tile size is a good assumption. I think it is.
-            const float maxBlurRadius = (float)tileSize;
-
+            // TODO_FCC: Find better velocity encoding.
+            var cs = m_Resources.shaders.motionBlurVelocityPrepCS;
+            int kernel = cs.FindKernel("VelPreppingCS");
+            int threadGroupX = (camera.actualWidth + 7) / 8;
+            int threadGroupY = (camera.actualHeight + 7) / 8;
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
+            cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
 
             // -----------------------------------------------------------------------------
             // Generate MinMax velocity tiles
 
-            // TODO: Store in a lower footprint. This is not necesessary now as it has more precision than source.
-            // Do we need to store the min velocity? No, what if we store R11G11B10 with RG = Max vel and B = Diff?
-            // This will be faster and coherent with the memory footprint of the source (11 bit per channel) .
-            // TODO: Check if we have a use case for it.
-             
-            var cs = m_Resources.shaders.motionBlurTileGenCS;
-            int kernel = cs.FindKernel("TileGenPass");
+            // We store R11G11B10 with RG = Max vel and B = Min vel magnitued
+            cs = m_Resources.shaders.motionBlurTileGenCS;
+            kernel = cs.FindKernel("TileGenPass");
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
-            int threadGroupX = (camera.actualWidth + (tileSize-1)) / tileSize;
-            int threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize;
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
+            threadGroupX = (camera.actualWidth + (tileSize-1)) / tileSize;
+            threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize
+                ;
             cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
 
             // -----------------------------------------------------------------------------
@@ -1212,13 +1216,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             threadGroupY = (camera.actualHeight + 7) / 8;
             cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
 
+            // -----------------------------------------------------------------------------
+            // Blur kernel
+            cs = m_Resources.shaders.motionBlurCS;
 
+        
 
             // -----------------------------------------------------------------------------
             // Recycle RTs
 
             m_Pool.Recycle(minMaxTileVel);
             m_Pool.Recycle(maxTileNeigbourhood);
+            m_Pool.Recycle(preppedVelocity);
 
 
 

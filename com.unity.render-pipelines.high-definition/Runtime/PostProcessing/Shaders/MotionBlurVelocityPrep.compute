@@ -1,17 +1,21 @@
-// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSMain
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
-RWTexture2D<float3> _PreppedVelocity;
+#pragma kernel VelPreppingCS VELOCITY_PREPPING
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 
 [numthreads(8,8,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+void VelPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    // TODO: insert actual code here!
+    float2 velocity;
+    DecodeVelocity(LOAD_TEXTURE2D(_CameraMotionVectorsTexture, dispatchThreadId.xy), velocity);
+    float2 normalizedVel = VelocityToNormalized(velocity);
 
-    // --- 
+    // Compute linear depth
+    float depth = SampleCameraDepth(dispatchThreadId);
+    float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
 
-    Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+
+    _VelocityAndDepth[dispatchThreadId.xy] = float3(normalizedVel.x, normalizedVel.y, linearEyeDepth);
 }

@@ -130,6 +130,8 @@ MonoBehaviour:
       type: 3}
     paniniProjectionCS: {fileID: 7200000, guid: 0ddbf72c8fbb6e44b983f470c8384ef6,
       type: 3}
+    motionBlurVelocityPrepCS: {fileID: 7200000, guid: ed9438fa777911d48933402087203b15,
+      type: 3}
     motionBlurTileGenCS: {fileID: 7200000, guid: 5ee43b1e23a3bf743b4def192d377762,
       type: 3}
     bloomPrefilterCS: {fileID: 7200000, guid: 243b24008041aaa4a91800690f63c684, type: 3}
