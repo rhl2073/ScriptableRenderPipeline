@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed FrameSettings' LitShaderMode sync when opening DebugMenu.
 - Fixed Metal specific issues with decals, hitting a sampler limit and compiling AxF shader
 - Fixed an issue with flipped depth buffer during postprocessing
-- Fixed normal map use for bias with forward lit - now use geometric normal
+- Fixed normal map use for shadow bias with forward lit - now use geometric normal
 - Fixed transparent depth prepass and postpass access so they can be use without alpha clipping for lit shader
 - Fixed support of alpha clip shadow for lit master node
 - Fixed unlit master node not compiling
