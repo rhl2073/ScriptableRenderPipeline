@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - LWRP now uses the Unity recorder extension to make it possible to capture the output of Cameras.
 - You can now inject a custom render pass before rendering opaque objects. To do so, implement an `IBeforeRender` interface.
+- You may now use dynamic resolution scaling with LWRP on platforms where it is supported.
 
 ### Changed
 - Removed `IAfterDepthPrePass` interface.
