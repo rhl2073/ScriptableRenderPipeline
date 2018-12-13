@@ -423,7 +423,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (hdPipeline.IsInternalDiffusionProfile(diffusionProfileSettings))
             {
-                EditorGUILayout.HelpBox("No diffusion profile Settings have been assigned to the render pipeline asset.", MessageType.Warning);
+                EditorGUILayout.HelpBox("No Diffusion Profile List have been assigned to the render pipeline asset.", MessageType.Warning);
                 return;
             }
 

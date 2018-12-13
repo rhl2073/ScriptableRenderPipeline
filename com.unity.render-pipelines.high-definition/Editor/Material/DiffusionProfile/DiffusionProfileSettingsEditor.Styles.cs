@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         sealed class Styles
         {
-            public readonly GUIContent   profilePreview0           = new GUIContent("Profile Preview");
+            public readonly GUIContent   profilePreview0           = new GUIContent("Diffusion Profile Preview");
             public readonly GUIContent   profilePreview1           = new GUIContent("Shows the fraction of light scattered from the source (center).");
             public readonly GUIContent   profilePreview2           = new GUIContent("The distance to the boundary of the image corresponds to the Max Radius.");
             public readonly GUIContent   profilePreview3           = new GUIContent("Note that the intensity of pixels around the center may be clipped.");
