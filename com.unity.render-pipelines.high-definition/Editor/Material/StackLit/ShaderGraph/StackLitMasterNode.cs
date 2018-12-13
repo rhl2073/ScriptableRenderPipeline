@@ -154,7 +154,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public enum AlphaModeLit
         {
             Alpha,
-            PremultipliedAlpha,
+            Premultiply,
             Additive,
         }
 

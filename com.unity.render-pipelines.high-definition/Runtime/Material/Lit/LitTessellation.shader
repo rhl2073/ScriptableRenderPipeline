@@ -102,6 +102,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
         [ToggleUI]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        _AlphaCutoffShadow("_AlphaCutoffShadow", Range(0.0, 1.0)) = 0.5
         _AlphaCutoffPrepass("_AlphaCutoffPrepass", Range(0.0, 1.0)) = 0.5
         _AlphaCutoffPostpass("_AlphaCutoffPostpass", Range(0.0, 1.0)) = 0.5
         [ToggleUI] _TransparentDepthPrepassEnable("_TransparentDepthPrepassEnable", Float) = 0.0
@@ -463,6 +464,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
+            #define CUTOFF_TRANSPARENT_DEPTH_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"

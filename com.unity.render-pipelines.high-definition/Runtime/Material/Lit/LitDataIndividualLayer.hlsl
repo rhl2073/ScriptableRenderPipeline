@@ -187,6 +187,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     alphaCutoff = _AlphaCutoffPrepass;
     #elif defined(CUTOFF_TRANSPARENT_DEPTH_POSTPASS)
     alphaCutoff = _AlphaCutoffPostpass;
+    #elif defined(CUTOFF_TRANSPARENT_DEPTH_SHADOWS)
+    alphaCutoff = _AlphaCutoffShadow;
     #endif
     DoAlphaTest(alpha, alphaCutoff);
 #endif

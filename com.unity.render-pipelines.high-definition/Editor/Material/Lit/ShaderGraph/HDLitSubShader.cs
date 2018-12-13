@@ -180,7 +180,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId
+                HDLitMasterNode.AlphaThresholdSlotId,
+                HDLitMasterNode.AlphaThresholdShadowSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -697,11 +698,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (masterNode.alphaTest.isOn)
             {
                 int count = 0;
-                if (pass.PixelShaderUsesSlot(HDLitMasterNode.AlphaThresholdSlotId))
+                // If alpha test shadow is enable, we use it, otherwise we use the regular test
+                if (pass.PixelShaderUsesSlot(HDLitMasterNode.AlphaThresholdShadowSlotId) && masterNode.alphaTestShadow.isOn)
+                {
+                    activeFields.Add("AlphaTestShadow");
+                    ++count;
+                }
+                else if (pass.PixelShaderUsesSlot(HDLitMasterNode.AlphaThresholdSlotId))
                 {
                     activeFields.Add("AlphaTest");
                     ++count;
                 }
+
                 if (pass.PixelShaderUsesSlot(HDLitMasterNode.AlphaThresholdDepthPrepassSlotId))
                 {
                     activeFields.Add("AlphaTestPrepass");
