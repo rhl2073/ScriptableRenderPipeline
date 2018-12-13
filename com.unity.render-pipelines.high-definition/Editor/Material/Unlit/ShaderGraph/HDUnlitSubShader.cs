@@ -141,10 +141,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl\"",
             },
-            RequiredFields = new List<string>()
-            {
-                "FragInputs.positionRWS",
-            },
             PixelShaderSlots = new List<int>()
             {
                 UnlitMasterNode.AlphaSlotId,
@@ -358,8 +354,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     GenerateShaderPassUnlit(masterNode, m_PassDepthForwardOnly, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
-
-                GenerateShaderPassUnlit(masterNode, m_PassMotionVectors, mode, materialOptions, subShader, sourceAssetDependencyPaths);
 
                 GenerateShaderPassUnlit(masterNode, m_PassForwardOnly, mode, materialOptions, subShader, sourceAssetDependencyPaths);                
                 
