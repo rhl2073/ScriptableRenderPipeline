@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed support of alpha clip shadow for lit master node
 - Fixed unlit master node not compiling
 - Fixed issue with debug display of reflection probe
+- Fixed issue with phong tessellations not working with lit shader
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
