@@ -55,7 +55,8 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
             {
                 uint width, height, depth, mipCount;
                 width = height = depth = mipCount = 0;
-                _InputCubemap.GetDimensions(width, height, depth, mipCount);
+                uint sliceIndex = 0;
+                _InputCubemap.GetDimensions(sliceIndex, width, height, depth, mipCount);
                 mipCount = clamp(mipCount, 0, UNITY_SPECCUBE_LOD_STEPS);
 
                 return SAMPLE_TEXTURECUBE_ARRAY_LOD(_InputCubemap, sampler_InputCubemap, LatlongToDirectionCoordinate(input.texcoord.xy), sliceIndex, _Mipmap * mipCount) * exp2(_DebugExposure);
