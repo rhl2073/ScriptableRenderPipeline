@@ -440,22 +440,22 @@ namespace UnityEngine.Rendering.LWRP
         {
             get { return editorResources.autodeskInteractiveMaskedShader; }
         }
+
+        public override Shader terrainDetailLitShader
+        {
+            get { return editorResources.terrainDetailLitShader; }
+        }
+
+        public override Shader terrainDetailGrassShader
+        {
+            get { return editorResources.terrainDetailGrassShader; }
+        }
+
+        public override Shader terrainDetailGrassBillboardShader
+        {
+            get { return editorResources.terrainDetailGrassBillboardShader; }
+        }
 #endif
-
-        public Shader terrainDetailLitShader
-        {
-            get { return resources != null ? resources.terrainDetailLitShader : null; }
-        }
-
-        public Shader terrainDetailGrassShader
-        {
-            get { return resources != null ? resources.terrainDetailGrassShader : null; }
-        }
-
-        public Shader terrainDetailGrassBillboardShader
-        {
-            get { return resources != null ? resources.terrainDetailGrassBillboardShader : null; }
-        }
 
         public Shader blitShader
         {

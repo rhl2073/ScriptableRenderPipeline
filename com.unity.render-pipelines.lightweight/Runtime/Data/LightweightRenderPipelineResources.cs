@@ -9,10 +9,6 @@ namespace UnityEngine.Rendering.LWRP
         [FormerlySerializedAs("ScreenSpaceShadowShader"), SerializeField] Shader m_ScreenSpaceShadowShader = null;
         [FormerlySerializedAs("SamplingShader"), SerializeField] Shader m_SamplingShader = null;
 
-        [SerializeField] Shader m_TerrainDetailLitShader = null;
-        [SerializeField] Shader m_TerrainDetailGrassShader = null;
-        [SerializeField] Shader m_TerrainDetailGrassBillboardShader = null;
-
         public Shader blitShader
         {
             get { return m_BlitShader; }
@@ -31,21 +27,6 @@ namespace UnityEngine.Rendering.LWRP
         public Shader samplingShader
         {
             get { return m_SamplingShader; }
-        }
-
-        public Shader terrainDetailLitShader
-        {
-            get { return m_TerrainDetailLitShader; }
-        }
-
-        public Shader terrainDetailGrassShader
-        {
-            get { return m_TerrainDetailGrassShader; }
-        }
-
-        public Shader terrainDetailGrassBillboardShader
-        {
-            get { return m_TerrainDetailGrassBillboardShader; }
         }
     }
 }
