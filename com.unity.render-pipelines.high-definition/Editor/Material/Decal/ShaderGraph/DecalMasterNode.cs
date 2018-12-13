@@ -162,7 +162,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // AlphaAlbedo
             if (MaterialTypeUsesSlotMask(SlotMask.AlphaAlbedo))
             {
-                AddSlot(new Vector1MaterialSlot(BaseColorOpacitySlotId, BaseColorOpacitySlotName, BaseColorOpacityDisplaySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(BaseColorOpacitySlotId, BaseColorOpacityDisplaySlotName, BaseColorOpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(BaseColorOpacitySlotId);
             }
 
@@ -176,7 +176,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // AlphaNormal
             if (MaterialTypeUsesSlotMask(SlotMask.AlphaNormal))
             {
-                AddSlot(new Vector1MaterialSlot(NormaOpacitySlotId, NormaOpacitySlotName, NormaOpacityDisplaySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(NormaOpacitySlotId, NormaOpacityDisplaySlotName, NormaOpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(NormaOpacitySlotId);
             }
 
@@ -190,7 +190,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // AlphaMetal
             if (MaterialTypeUsesSlotMask(SlotMask.AlphaMetallic))
             {
-                AddSlot(new Vector1MaterialSlot(MetallicOpacitySlotId, MetallicOpacitySlotName, MetallicOpacityDisplaySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(MetallicOpacitySlotId, MetallicOpacityDisplaySlotName, MetallicOpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(MetallicOpacitySlotId);
             }
 
@@ -204,7 +204,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // AlphaOcclusion
             if (MaterialTypeUsesSlotMask(SlotMask.AlphaOcclusion))
             {
-                AddSlot(new Vector1MaterialSlot(AmbientOcclusionOpacitySlotId, AmbientOcclusionOpacitySlotName, AmbientOcclusionOpacityDisplaySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(AmbientOcclusionOpacitySlotId, AmbientOcclusionOpacityDisplaySlotName, AmbientOcclusionOpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(AmbientOcclusionOpacitySlotId);
             }
 
@@ -219,7 +219,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // AlphaSmoothness
             if (MaterialTypeUsesSlotMask(SlotMask.AlphaSmoothness))
             {
-                AddSlot(new Vector1MaterialSlot(SmoothnessOpacitySlotId, SmoothnessOpacitySlotName, SmoothnessOpacityDisplaySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(SmoothnessOpacitySlotId, SmoothnessOpacityDisplaySlotName, SmoothnessOpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(SmoothnessOpacitySlotId);
             }
 

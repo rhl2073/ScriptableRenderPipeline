@@ -16,9 +16,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             MaterialName = "Decal",
             ShaderPassName = "SHADERPASS_DBUFFER_MESH",
 
+            CullOverride = "Cull Front",
+            ZTestOverride = "ZTest Greater",
+            ZWriteOverride = "ZWrite Off",
+            BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor",
+
             Includes = new List<string>()
             {
-//                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl\"",
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl\"",
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl\""
             },
@@ -33,12 +37,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 DecalMasterNode.AlbedoSlotId,
+                DecalMasterNode.BaseColorOpacitySlotId,
                 DecalMasterNode.NormalSlotId,
                 DecalMasterNode.MetallicSlotId,
                 DecalMasterNode.SmoothnessSlotId,
                 DecalMasterNode.AmbientOcclusionSlotId,
                 DecalMasterNode.AlphaSlotId,
-                DecalMasterNode.BaseColorOpacitySlotId,
                 DecalMasterNode.NormaOpacitySlotId,
                 DecalMasterNode.MetallicOpacitySlotId,
                 DecalMasterNode.AmbientOcclusionOpacitySlotId,
