@@ -14,11 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Wizard helping to configure HDRP project.
 - Added new UI for decal material to allow remapping and scaling of some properties
 - Added cascade shadow visualisation toggle in HD shadow settings
-<<<<<<< HEAD
-- Added replace blending mode for distortoin
-=======
 - Added icons for assets.
->>>>>>> master
+- Added replace blending mode for distortion
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
@@ -38,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed transparent depth prepass and postpass access so they can be use without alpha clipping for lit shader
 - Fixed support of alpha clip shadow for lit master node
 - Fixed unlit master node not compiling
+- Fixed issue with debug display of reflection probe
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
