@@ -90,12 +90,12 @@ float2 DecodeVelocityFromPacked(float2 velocity)
 
 float2 MinVel(float2 v, float2 w)
 {
-    return v.x < w.x ? v : w;
+    return VelocityLengthFromEncoded(v) < VelocityLengthFromEncoded(w) ? v : w;
 }
 
 float2 MaxVel(float2 v, float2 w)
 {
-    return v.x < w.x ? w : v;
+    return VelocityLengthFromEncoded(v) < VelocityLengthFromEncoded(w) ? w : v;
 }
 
 
