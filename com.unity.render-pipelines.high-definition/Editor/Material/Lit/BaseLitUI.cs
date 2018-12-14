@@ -57,7 +57,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent windShiverDragText = new GUIContent("Shiver Drag");
             public static GUIContent windShiverDirectionalityText = new GUIContent("Shiver Directionality");
 
-            public static GUIContent supportDecalsText = new GUIContent("Receive Decals", "Allow material to receive decal or not");
+            public static GUIContent supportDecalsText = new GUIContent("Receive Decals", "Allow material to receive decals or not");
 
             public static GUIContent enableGeometricSpecularAAText = new GUIContent("Geometric Specular AA", "This reduce specular aliasing on highly dense mesh (Particularly useful when they don't use normal map)");
             public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Allow to control the strength of the specular AA reduction. Higher mean more blurry result and less aliasing");

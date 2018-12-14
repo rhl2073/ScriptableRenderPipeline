@@ -39,11 +39,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Clipping", "Enable Alpha Clipping");
             public static GUIContent alphaCutoffText = new GUIContent("Threshold", "Threshold for Alpha Clipping");
-            public static GUIContent alphaCutoffShadowText = new GUIContent("Transparent Shadow Threshold", "Threshold for Alpha Clipping in case of transparent shadow pass");
-            public static GUIContent alphaCutoffPrepassText = new GUIContent("Transparent Prepass Threshold", "Threshold for Alpha Clippingin case of transparent depth prepass");
-            public static GUIContent alphaCutoffPostpassText = new GUIContent("Transparent Postpass Threshold", "Threshold for Alpha Clipping in case of transparent depth postpass");
+            public static GUIContent alphaCutoffShadowText = new GUIContent("Shadow Threshold", "Threshold for Alpha Clipping in case of shadow pass");
+            public static GUIContent alphaCutoffPrepassText = new GUIContent("Prepass Threshold", "Threshold for Alpha Clipping in case of transparent depth prepass");
+            public static GUIContent alphaCutoffPostpassText = new GUIContent("Postpass Threshold", "Threshold for Alpha Clipping in case of transparent depth postpass");
             public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Transparent Depth Prepass", "Render a depth prepass for transparent object - Improve sorting");
-            public static GUIContent transparentDepthPostpassEnableText = new GUIContent("Transparent Depth Postpass", "Render a depth postpass for transparent object - Imporve PostProcess effect like DOF");
+            public static GUIContent transparentDepthPostpassEnableText = new GUIContent("Transparent Depth Postpass", "Render a depth postpass for transparent object - Improve PostProcess effect like DOF");
             public static GUIContent transparentBackfaceEnableText = new GUIContent("Back Then Front Rendering", "It allow to better sort transparent mesh by first rendering back faces then front faces in two separate drawcall");
 
             public static GUIContent transparentSortPriorityText = new GUIContent("Sorting Priority", "Allow manually define sorting order based on priority (from -100 to +100) to solve sorting issue with transparent");
