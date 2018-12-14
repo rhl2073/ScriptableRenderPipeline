@@ -8,13 +8,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class DecalSubShader : IDecalSubShader
     {
-        Pass m_PassMesh = new Pass()
+        Pass m_PassProjector = new Pass()
         {
-            Name = "DBufferMesh",
-            LightMode = "DBufferMesh",
+            Name = "DBufferProjector",
+            LightMode = "DBufferProjector",
             TemplateName = "DecalPass.template",
             MaterialName = "Decal",
-            ShaderPassName = "SHADERPASS_DBUFFER_MESH",
+            ShaderPassName = "SHADERPASS_DBUFFER_PROJECTOR",
 
             CullOverride = "Cull Front",
             ZTestOverride = "ZTest Greater",
@@ -24,14 +24,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl\"",
+//                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl\"",
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl\""
             },
 
             RequiredFields = new List<string>()
             {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
-                "AttributesMesh.uv0",
+                 "AttributesMesh.instanceID",
             },
 
             PixelShaderSlots = new List<int>()
@@ -39,167 +38,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 DecalMasterNode.AlbedoSlotId,
                 DecalMasterNode.BaseColorOpacitySlotId,
                 DecalMasterNode.NormalSlotId,
-                DecalMasterNode.MetallicSlotId,
-                DecalMasterNode.SmoothnessSlotId,
-                DecalMasterNode.AmbientOcclusionSlotId,
-                DecalMasterNode.AlphaSlotId,
                 DecalMasterNode.NormaOpacitySlotId,
-                DecalMasterNode.MetallicOpacitySlotId,
-                DecalMasterNode.AmbientOcclusionOpacitySlotId,
-                DecalMasterNode.SmoothnessOpacitySlotId,
+                DecalMasterNode.MetallicSlotId,
+                DecalMasterNode.AmbientOcclusionSlotId,
+                DecalMasterNode.SmoothnessSlotId,
+                DecalMasterNode.MAOSOpacitySlotId,
             },
 
             VertexShaderSlots = new List<int>()
             {
                 //                DecalMasterNode.PositionSlotId
             },
-            UseInPreview = true
-        };
-
-
-        Pass m_PassMETA = new Pass()
-        {
-            Name = "META",
-            LightMode = "Meta",
-            TemplateName = "DecalPass.template",
-            MaterialName = "Decal",
-            ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
-            CullOverride = "Cull Off",
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl\"",
-            },
-            RequiredFields = new List<string>()
-            {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
-                "AttributesMesh.uv0",
-                "AttributesMesh.uv1",
-                "AttributesMesh.color",
-                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                DecalMasterNode.AlbedoSlotId,
-                DecalMasterNode.NormalSlotId,
-                DecalMasterNode.SmoothnessSlotId,
-                DecalMasterNode.AmbientOcclusionSlotId,
-                DecalMasterNode.AlphaSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                //DecalMasterNode.PositionSlotId
-            },
-            UseInPreview = false
-        };
-
-        Pass m_PassShadowCaster = new Pass()
-        {
-            Name = "ShadowCaster",
-            LightMode = "ShadowCaster",
-            TemplateName = "DecalPass.template",
-            MaterialName = "Decal",
-            ShaderPassName = "SHADERPASS_SHADOWS",
-            BlendOverride = "Blend One Zero",
-            ZWriteOverride = "ZWrite On",
-            ColorMaskOverride = "ColorMask 0",
-            ExtraDefines = new List<string>()
-            {
-                "#define USE_LEGACY_UNITY_MATRIX_VARIABLES",
-            },
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                DecalMasterNode.AlphaSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                DecalMasterNode.PositionSlotId
-            },
-            UseInPreview = false
-        };
-
-        Pass m_SceneSelectionPass = new Pass()
-        {
-            Name = "SceneSelectionPass",
-            LightMode = "SceneSelectionPass",
-            TemplateName = "DecalPass.template",
-            MaterialName = "Decal",
-            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
-            ColorMaskOverride = "ColorMask 0",
-            ExtraDefines = new List<string>()
-            {
-                "#define SCENESELECTIONPASS",
-            },            
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                DecalMasterNode.AlphaSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                DecalMasterNode.PositionSlotId
-            },
-            UseInPreview = true
-        };
-
-        Pass m_PassDepthForwardOnly = new Pass()
-        {
-            Name = "DepthOnly",
-            LightMode = "DepthForwardOnly",
-            TemplateName = "DecalPass.template",
-            MaterialName = "Decal",
-            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
-            ZWriteOverride = "ZWrite On",
-
-            ExtraDefines = new List<string>()
-            {
-                "#define WRITE_NORMAL_BUFFER",
-                "#pragma multi_compile _ WRITE_MSAA_DEPTH"
-            },
-            
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                DecalMasterNode.NormalSlotId,
-                DecalMasterNode.SmoothnessSlotId,
-                DecalMasterNode.AlphaSlotId,
-            },
-
-            RequiredFields = new List<string>()
-            {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
-                "AttributesMesh.uv0",
-                "AttributesMesh.uv1",
-                "AttributesMesh.color",
-                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-                "AttributesMesh.uv3",           // DEBUG_DISPLAY
-
-                "FragInputs.worldToTangent",
-                "FragInputs.positionRWS",
-                "FragInputs.texCoord0",
-                "FragInputs.texCoord1",
-                "FragInputs.texCoord2",
-                "FragInputs.texCoord3",
-                "FragInputs.color",
-            },
-
-            VertexShaderSlots = new List<int>()
-            {
-                DecalMasterNode.PositionSlotId
-            },
-            UseInPreview = false,
-
+            UseInPreview = true,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
 
@@ -224,158 +74,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 //        "}"
                 //    };
                 //}
-            }           
-        };
-
-        Pass m_PassMotionVectors = new Pass()
-        {
-            Name = "Motion Vectors",
-            LightMode = "MotionVectors",
-            TemplateName = "DecalPass.template",
-            MaterialName = "Decal",
-            ShaderPassName = "SHADERPASS_VELOCITY",
-            ExtraDefines = new List<string>()
-            {
-                "#define WRITE_NORMAL_BUFFER",
-                "#pragma multi_compile _ WRITE_MSAA_DEPTH"
-            },
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl\"",
-            },
-            RequiredFields = new List<string>()
-            {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
-                "AttributesMesh.uv0",
-                "AttributesMesh.uv1",
-                "AttributesMesh.color",
-                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-                "AttributesMesh.uv3",           // DEBUG_DISPLAY
-
-                "FragInputs.worldToTangent",
-                "FragInputs.positionRWS",
-                "FragInputs.texCoord0",
-                "FragInputs.texCoord1",
-                "FragInputs.texCoord2",
-                "FragInputs.texCoord3",
-                "FragInputs.color",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                DecalMasterNode.NormalSlotId,
-                DecalMasterNode.SmoothnessSlotId,
-                DecalMasterNode.AlphaSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                DecalMasterNode.PositionSlotId
-            },
-            UseInPreview = false,
-
-            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
-            {
-                var masterNode = node as DecalMasterNode;
-
-                int stencilWriteMaskMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
-                int stencilRefMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
-
-                pass.StencilOverride = new List<string>()
-                {
-                    "// If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity",
-                    "Stencil",
-                    "{",
-                    string.Format("   WriteMask {0}", stencilWriteMaskMV),
-                    string.Format("   Ref  {0}", stencilRefMV),
-                    "   Comp Always",
-                    "   Pass Replace",
-                    "}"
-                };
             }
         };
 
-        Pass m_PassForwardOnly = new Pass()
-        {
-            Name = "Forward",
-            LightMode = "ForwardOnly",
-            TemplateName = "DecalPass.template",
-            MaterialName = "Decal",
-            ShaderPassName = "SHADERPASS_FORWARD",
-            ExtraDefines = new List<string>()
-            {
-                "#pragma multi_compile _ DEBUG_DISPLAY",
-                "#pragma multi_compile _ LIGHTMAP_ON",
-                "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
-                "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
-                "#pragma multi_compile _ SHADOWS_SHADOWMASK",
-                "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
-                "#define LIGHTLOOP_TILE_PASS",
-                "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST",
-                "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH"
-            },
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl\"",
-            },
-            RequiredFields = new List<string>()
-            {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
-                "AttributesMesh.uv0",
-                "AttributesMesh.uv1",
-                "AttributesMesh.color",
-                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-                "AttributesMesh.uv3",           // DEBUG_DISPLAY
 
-                "FragInputs.worldToTangent",
-                "FragInputs.positionRWS",
-                "FragInputs.texCoord0",
-                "FragInputs.texCoord1",
-                "FragInputs.texCoord2",
-                "FragInputs.texCoord3",
-                "FragInputs.color",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                DecalMasterNode.AlbedoSlotId,
-                DecalMasterNode.NormalSlotId,
-                DecalMasterNode.SmoothnessSlotId,
-                DecalMasterNode.AmbientOcclusionSlotId,
-                DecalMasterNode.AlphaSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                DecalMasterNode.PositionSlotId
-            },
-            UseInPreview = true,
-
-            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
-            {
-                var masterNode = node as DecalMasterNode;
-                //pass.StencilOverride = new List<string>()
-                //{
-                //    "// Stencil setup",
-                //    "Stencil",
-                //    "{",
-                //    string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.LightingMask),
-                //    string.Format("   Ref  {0}", masterNode.RequiresSplitLighting() ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting),
-                //    "   Comp Always",
-                //    "   Pass Replace",
-                //    "}"
-                //};
-
-                //pass.ExtraDefines.Remove("#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST");
-                //if (masterNode.surfaceType == SurfaceType.Opaque && masterNode.alphaTest.isOn)
-                //{
-                //    pass.ExtraDefines.Add("#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST");
-                //    pass.ZTestOverride = "ZTest Equal";
-                //}
-                //else
-                //{
-                //    pass.ZTestOverride = null;
-                //}
-            }
-        };
 
         private static HashSet<string> GetActiveFieldsFromMasterNode(INode iMasterNode, Pass pass)
         {
@@ -547,7 +249,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (sourceAssetDependencyPaths != null)
             {
                 // DecalSubShader.cs
-                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("059cc3132f0336e40886300f3d2d7f12"));
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("3b523fb79ded88842bb5195be78e0354"));
                 // HDSubShaderUtilities.cs
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("713ced4e6eef4a44799a4dd59041484b"));
             }
@@ -568,11 +270,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     subShader.AddShaderChunk(tagsVisitor.ToString(), false);
                 }
 
-                GenerateShaderPass(masterNode, m_PassMesh, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(masterNode, m_PassProjector, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.DecalGUI""");
+            //subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.DecalGUI""");
             string s = subShader.GetShaderString(0);
             return s;
         }

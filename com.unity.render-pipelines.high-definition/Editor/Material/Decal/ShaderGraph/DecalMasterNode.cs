@@ -24,41 +24,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string AlbedoDisplaySlotName = "BaseColor";
         public const int AlbedoSlotId = 1;
 
-        public const string NormalSlotName = "Normal";
-        public const int NormalSlotId = 2;
-
-        public const string MetallicSlotName = "Metallic";
-        public const int MetallicSlotId = 3;
-
-        public const string AmbientOcclusionSlotName = "Occlusion";
-        public const string AmbientOcclusionDisplaySlotName = "AmbientOcclusion";
-        public const int AmbientOcclusionSlotId = 4;
-
-        public const string SmoothnessSlotName = "Smoothness";
-        public const int SmoothnessSlotId = 5;
-
-        public const string OpacitySlotName = "Opacity";
-        public const int AlphaSlotId = 6;
-
         public const string BaseColorOpacitySlotName = "AlphaAlbedo";
         public const string BaseColorOpacityDisplaySlotName = "BaseColor Opacity";
-        public const int BaseColorOpacitySlotId = 7;
+        public const int BaseColorOpacitySlotId = 2;
+
+        public const string NormalSlotName = "Normal";
+        public const int NormalSlotId = 3;
 
         public const string NormaOpacitySlotName = "AlphaNormal";
         public const string NormaOpacityDisplaySlotName = "Normal Opacity";
-        public const int NormaOpacitySlotId = 8;
+        public const int NormaOpacitySlotId = 4;
 
-        public const string MetallicOpacitySlotName = "AlphaMettalic";
-        public const string MetallicOpacityDisplaySlotName = "Metallic Opacity";
-        public const int MetallicOpacitySlotId = 9;
+        public const string MetallicSlotName = "Metallic";
+        public const int MetallicSlotId = 5;
 
-        public const string AmbientOcclusionOpacitySlotName = "AlphaAmbientOcclusion";
-        public const string AmbientOcclusionOpacityDisplaySlotName = "Ambient Occlusion Opacity";
-        public const int AmbientOcclusionOpacitySlotId = 10;
+        public const string AmbientOcclusionSlotName = "Occlusion";
+        public const string AmbientOcclusionDisplaySlotName = "Ambient Occlusion";
+        public const int AmbientOcclusionSlotId = 6;
 
-        public const string SmoothnessOpacitySlotName = "AlphaSmoothness";
-        public const string SmoothnessOpacityDisplaySlotName = "Smoothness Opacity";
-        public const int SmoothnessOpacitySlotId = 11;
+        public const string SmoothnessSlotName = "Smoothness";
+        public const int SmoothnessSlotId = 7;
+
+        public const string MAOSOpacitySlotName = "MAOSOpacity";
+        public const string MAOSOpacityDisplaySlotName = "MAOS Opacity";
+        public const int MAOSOpacitySlotId = 8;
+
 
 
         // Just for convenience of doing simple masks. We could run out of bits of course.
@@ -68,64 +58,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             None = 0,
             Position = 1 << PositionSlotId,
             Albedo = 1 << AlbedoSlotId,
-            Normal = 1 << NormalSlotId,
-            Metallic = 1 << MetallicSlotId,
-            Smoothness = 1 << SmoothnessSlotId,
-            Occlusion = 1 << AmbientOcclusionSlotId,
-            Alpha = 1 << AlphaSlotId,
             AlphaAlbedo = 1 << BaseColorOpacitySlotId,
+            Normal = 1 << NormalSlotId,
             AlphaNormal = 1 << NormaOpacitySlotId,
-            AlphaMetallic = 1 << MetallicOpacitySlotId,
-            AlphaOcclusion = 1 << AmbientOcclusionOpacitySlotId,
-            AlphaSmoothness = 1 << SmoothnessOpacitySlotId,
+            Metallic = 1 << MetallicSlotId,
+            Occlusion = 1 << AmbientOcclusionSlotId,
+            Smoothness = 1 << SmoothnessSlotId,
+            AlphaMAOS = 1 << MAOSOpacitySlotId
         }
 
-        const SlotMask regularDecalParameter = SlotMask.Position | SlotMask.Albedo | SlotMask.AlphaAlbedo | SlotMask.Normal | SlotMask.AlphaNormal | SlotMask.Smoothness | SlotMask.AlphaSmoothness | SlotMask.Alpha;
-        const SlotMask detailedDecalParameter = regularDecalParameter | SlotMask.Metallic | SlotMask.AlphaMetallic | SlotMask.Occlusion | SlotMask.AlphaOcclusion;
-
-        public enum DecalType
-        {
-            Regular_3RT,
-            Detailed_4RT
-        }
+        const SlotMask decalParameter = SlotMask.Position | SlotMask.Albedo | SlotMask.AlphaAlbedo | SlotMask.Normal | SlotMask.AlphaNormal | SlotMask.Metallic | SlotMask.Occlusion | SlotMask.Smoothness | SlotMask.AlphaMAOS;
+        
 
         // This could also be a simple array. For now, catch any mismatched data.
         SlotMask GetActiveSlotMask()
         {
-            switch (m_DecalType)
-            {
-                case DecalType.Regular_3RT:
-                    return regularDecalParameter;
-
-                case DecalType.Detailed_4RT:
-                    return detailedDecalParameter;
-
-                default:
-                    return regularDecalParameter;
-            }
+            return decalParameter;
         }
 
         bool MaterialTypeUsesSlotMask(SlotMask mask)
         {
             SlotMask activeMask = GetActiveSlotMask();
             return (activeMask & mask) != 0;
-        }
-
-        [SerializeField]
-        DecalType m_DecalType;
-
-        public DecalType decalType
-        {
-            get { return m_DecalType; }
-            set
-            {
-                if (m_DecalType == value)
-                    return;
-
-                m_DecalType = value;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
         }
 
         public DecalMasterNode()
@@ -183,29 +137,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Metal
             if (MaterialTypeUsesSlotMask(SlotMask.Metallic))
             {
-                AddSlot(new ColorRGBMaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, Color.white, ColorMode.Default, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(MetallicSlotId);
             }
 
-            // AlphaMetal
-            if (MaterialTypeUsesSlotMask(SlotMask.AlphaMetallic))
-            {
-                AddSlot(new Vector1MaterialSlot(MetallicOpacitySlotId, MetallicOpacityDisplaySlotName, MetallicOpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(MetallicOpacitySlotId);
-            }
 
             // Ambient Occlusion
             if (MaterialTypeUsesSlotMask(SlotMask.Occlusion))
             {
                 AddSlot(new Vector1MaterialSlot(AmbientOcclusionSlotId, AmbientOcclusionDisplaySlotName, AmbientOcclusionSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(AmbientOcclusionSlotId);
-            }
-
-            // AlphaOcclusion
-            if (MaterialTypeUsesSlotMask(SlotMask.AlphaOcclusion))
-            {
-                AddSlot(new Vector1MaterialSlot(AmbientOcclusionOpacitySlotId, AmbientOcclusionOpacityDisplaySlotName, AmbientOcclusionOpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(AmbientOcclusionOpacitySlotId);
             }
 
             // Smoothness
@@ -216,18 +157,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
 
-            // AlphaSmoothness
-            if (MaterialTypeUsesSlotMask(SlotMask.AlphaSmoothness))
+            // Alpha MAOS
+            if (MaterialTypeUsesSlotMask(SlotMask.AlphaMAOS))
             {
-                AddSlot(new Vector1MaterialSlot(SmoothnessOpacitySlotId, SmoothnessOpacityDisplaySlotName, SmoothnessOpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(SmoothnessOpacitySlotId);
-            }
-
-            // Alpha
-            if (MaterialTypeUsesSlotMask(SlotMask.Alpha))
-            {
-                AddSlot(new Vector1MaterialSlot(AlphaSlotId, OpacitySlotName, OpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(AlphaSlotId);
+                AddSlot(new Vector1MaterialSlot(MAOSOpacitySlotId, MAOSOpacityDisplaySlotName, MAOSOpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                validSlots.Add(MAOSOpacitySlotId);
             }
 
             RemoveSlotsNameNotMatching(validSlots, true);

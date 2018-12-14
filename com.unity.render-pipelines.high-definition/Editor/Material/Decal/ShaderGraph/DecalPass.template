@@ -31,9 +31,9 @@ Pass
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
-    $Material.AlbedoContribution:   #define _ALBEDOCONTRIBUTION 1
-    $Material.NormalContribution:   #define _NORMALCONTRIBUTION 1
-    $Material.MaskContribution:     #define _MASKCONTRIBUTION 1
+//    $Material.AlbedoContribution:   #define _ALBEDOCONTRIBUTION 1
+//    $Material.NormalContribution:   #define _NORMALCONTRIBUTION 1
+//    $Material.MaskContribution:     #define _MASKCONTRIBUTION 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
@@ -88,7 +88,7 @@ Pass
 //  #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl"
 
     #include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl" 
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+//    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 
     //-------------------------------------------------------------------------------------
@@ -121,9 +121,10 @@ $include("SharedCode.template.hlsl")
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
 
+        float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(matrix, _NormalToWorld);
         // copy across graph values, if defined
         $SurfaceDescription.Albedo:                     surfaceData.baseColor.xyz = surfaceDescription.Albedo;
-        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = surfaceDescription.Normal;
+        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.Normal);
         $SurfaceDescription.Smoothness:                 surfaceData.mask.z = surfaceDescription.Smoothness;
 #ifdef DECALS_4RT
         $SurfaceDescription.Metal:                      surfaceData.mask.x = surfaceDescription.Metal;
@@ -143,17 +144,20 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.AlphaOcclusion:             surfaceData.MAOSBlend.y = surfaceDescription.AlphaOcclusion;
 #endif
 
-//#ifdef _ALBEDOCONTRIBUTION
-        $SurfaceDescription.Albedo: surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
-//#endif
-
-#ifdef _NORMALCONTRIBUTION
-         $SurfaceDescription.Normal: surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
-#endif
-
-#ifdef _MASKCONTRIBUTION
-        surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
-#endif
+        if(surfaceData.baseColor.w > 0)
+        {
+            surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
+        }
+        
+        if(surfaceData.normalWS.w > 0)
+        {
+            surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
+        }
+        
+        if(surfaceData.mask.w > 0)
+        {
+            surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
+        }
     }
 
     //-------------------------------------------------------------------------------------
