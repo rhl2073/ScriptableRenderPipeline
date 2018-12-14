@@ -138,7 +138,7 @@ $include("SharedCode.template.hlsl")
 
         $SurfaceDescription.AlphaAlbedo:                surfaceData.baseColor.w = surfaceDescription.AlphaAlbedo;
         $SurfaceDescription.AlphaNormal:                surfaceData.normalWS.w = surfaceDescription.AlphaNormal;
-        $SurfaceDescription.AlphaSmoothness:            surfaceData.mask.w = surfaceDescription.AlphaSmoothness;
+        $SurfaceDescription.MAOSOpacity:                surfaceData.mask.w = surfaceDescription.MAOSOpacity;
 #ifdef DECALS_4RT
         $SurfaceDescription.AlphaMetal:                 surfaceData.MAOSBlend.x = surfaceDescription.AlphaMetal;
         $SurfaceDescription.AlphaOcclusion:             surfaceData.MAOSBlend.y = surfaceDescription.AlphaOcclusion;
