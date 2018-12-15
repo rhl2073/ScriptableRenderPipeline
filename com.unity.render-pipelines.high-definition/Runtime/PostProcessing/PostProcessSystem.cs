@@ -1170,7 +1170,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // -----------------------------------------------------------------------------
             // Temporary targets prep
 
-            const int tileSize = 16;        // Must match define on MotionBlurCommon - TODO_FCC: Set define from C#
+            const int tileSize = 32;        // Must match define on MotionBlurCommon - TODO_FCC: Set define from C#
             // TODO_FCC: Round up the scale! 
             int tileTexWidth    = Mathf.CeilToInt(camera.actualWidth / tileSize);
             int tileTexHeight   = Mathf.CeilToInt(camera.actualHeight / tileSize);
@@ -1193,6 +1193,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int threadGroupX = (camera.actualWidth + 7) / 8;
             int threadGroupY = (camera.actualHeight + 7) / 8;
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
+            cmd.SetComputeFloatParam(cs, HDShaderIDs._MotionBlurMaxVelocity, m_MotionBlur.maxVelocity);
+
             cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
 
             // -----------------------------------------------------------------------------

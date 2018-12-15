@@ -2,7 +2,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
-#define TILE_SIZE                   16u
+#define TILE_SIZE                   32u
 #define WAVE_SIZE					64u
 
 #ifdef VELOCITY_PREPPING
@@ -29,6 +29,7 @@ float4 _TileTargetSize;     // .xy size, .zw 1/size
 float  _MinSqVelThreshold;
 float  _MinMaxSqVelRatioForSlowPath;
 int    _SampleCount;
+float _MotionBlurMaxVelocity;
 CBUFFER_END
 
 
@@ -52,7 +53,7 @@ float2 EncodeVelocity(float2 velocity)
     else
     {
         /// TODO_FCC: This is to be removed
-        float pixelLength = length(_ScreenSize.zw);
+        float pixelLength = length(_ScreenSize.xy);
         velLength = min(velLength, pixelLength * 64);
         /////
 
@@ -60,7 +61,15 @@ float2 EncodeVelocity(float2 velocity)
         return float2(velLength, theta);
     }
 #else
-    return velocity;
+
+    float len = length(velocity);
+
+    // TODO_FCC: PASS THIS 64 AS PARAM
+    if(len > 0)
+    {
+        return min(len, _MotionBlurMaxVelocity / length(_ScreenSize.xy)) * normalize(velocity);
+    }
+    else return 0;
 #endif
 }
 
@@ -70,6 +79,15 @@ float VelocityLengthFromEncoded(float2 velocity)
     return  velocity.x;
 #else
     return length(velocity);
+#endif
+}
+
+float VelocityLengthInPixelsFromEncoded(float2 velocity)
+{
+#if PACKING
+    return  velocity.x * length(_ScreenSize.xy);
+#else
+    return length(velocity * _ScreenSize.xy);
 #endif
 }
 

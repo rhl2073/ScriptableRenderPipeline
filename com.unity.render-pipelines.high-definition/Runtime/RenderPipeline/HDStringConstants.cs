@@ -563,6 +563,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _MinSqVelThreshold              = Shader.PropertyToID("_MinSqVelThreshold");
         public static readonly int _MinMaxSqVelRatioForSlowPath    = Shader.PropertyToID("_MinMaxSqVelRatioForSlowPath");
         public static readonly int _MotionBlurSampleCount          = Shader.PropertyToID("_SampleCount");
+        public static readonly int _MotionBlurMaxVelocity          = Shader.PropertyToID("_MotionBlurMaxVelocity");
 
 
     }

@@ -8,7 +8,7 @@
 RWTexture2D<float3> _OutputTexture;
 Texture2D _InputTexture;
 
-#define SOFT_Z_EXTENT 0.005
+#define SOFT_Z_EXTENT 0.01
 
 // ---------------------------------------------
 // Debug
@@ -37,7 +37,7 @@ Texture2D _InputTexture;
 #define NORMAL 0
 #define ONLY_SLOW_PATH 1
 
-#define DEBUG_EXECUTION ONLY_SLOW_PATH
+#define DEBUG_EXECUTION NORMAL
 
 
 // ---------------------------------------------
@@ -66,11 +66,12 @@ float2 GetTileUV(uint2 pixCoord)
 {
     // TODO_FCC: Animate the jitter? 
     float2 randomVals = float2(RandomValue(pixCoord, 0), RandomValue(pixCoord, 1));
-    float2 jitterBiasMul = float2(-2.0f, 2.0f) * TILE_JITTER_MAGNITUDE;
-    float2 tileJitter = (randomVals + jitterBiasMul.x) * jitterBiasMul.y; 
+    randomVals -= 0.5f;
+    randomVals *= 0.5f;
 
-    return ((pixCoord / TILE_SIZE) + tileJitter) * _TileTargetSize.zw;
+    return ((pixCoord / TILE_SIZE) + randomVals) * _TileTargetSize.zw;
 }
+
 
 // ---------------------------------------------
 // Weight functions
@@ -110,7 +111,47 @@ float SampleWeight(float centralDepth, float sampleDepth, float offsetLength, fl
 
 float SouzaWeights(float centralDepth, float sampleDepth, float offsetLength, float centralSpreadLength, float sampleSpreadLength, float pixelToSampleScale, float depthScale)
 {
+
 }
+
+
+// ---------------------------------------------
+// Sample processing 
+// ---------------------------------------------
+
+float3 ProcessSampleFastPath(uint sampleNumber, float2 dir, float invSampleCount, float2 centralUV, float randomVal)
+{
+    float  dirSign = sampleNumber % 2 == 0 ? 1.0f : -1.0f;                         // TODO_FCC: Verify this gets translated to sensible disasm 
+    float2 currDir = dirSign * dir;
+
+    float  offsetLength = (sampleNumber + 0.5f) + (dirSign * (randomVal - 0.5));
+    float2 sampleUV = centralUV + (offsetLength * invSampleCount) * currDir;
+    float3 sampleColor = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).xyz;
+    return sampleColor;
+}
+
+float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2 centralUV, float centralDepth, float centralVelocityLen, float pixelToSampleScale, float randomVal)
+{
+    float  dirSign = sampleNumber % 2 == 0 ? 1.0f : -1.0f;                         // TODO_FCC: Verify this gets translated to sensible disasm 
+    float2 currDir = dirSign * dir;
+
+    float  offsetLength = (sampleNumber + 0.5f) + (dirSign * (randomVal - 0.5));
+    float2 sampleUV = centralUV + (offsetLength*invSampleCount) * currDir;
+
+    float3 sampleVelDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, sampleUV, 0).xyz;
+    float3 sampleColor    = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).xyz;
+
+    float2 sampleVelLength = VelocityLengthInPixelsFromEncoded(sampleVelDepth.xy);
+    float  sampleDepth = sampleVelDepth.z;
+    float  sampleWeight = SampleWeight(centralDepth, sampleDepth, offsetLength, centralVelocityLen, sampleVelLength, pixelToSampleScale, SOFT_Z_EXTENT);
+
+    return float4(sampleWeight * sampleColor, sampleWeight);
+}
+
+
+// ---------------------------------------------
+// Kernel
+// ---------------------------------------------
 
 [numthreads(8,8,1)]
 void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -129,20 +170,19 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     // TODO_FCC: This should be one texture sample, not two. Find better storage, now just make it work.  
     float2 maxVel = DecodeVelocityFromPacked(tileMaxNeighbourhood.xy);
 
-    float maxVelLength = VelocityLengthFromEncoded(tileMaxNeighbourhood.xy);
-    float maxVelLengthSq = maxVelLength * maxVelLength;
-    float screenMagnitude = dot(_ScreenSize.xy, _ScreenSize.xy);
-    float maxVelLengthSqInPixels = maxVelLengthSq * screenMagnitude;
-    float minVelLengthSqInPixels = tileMaxAndMinLength.z * tileMaxAndMinLength.z * screenMagnitude;
+    float maxVelLength = VelocityLengthInPixelsFromEncoded(tileMaxNeighbourhood.xy);
+    float minVelLengthSqInPixels =  tileMaxAndMinLength.z * dot(_ScreenSize.xy, _ScreenSize.xy);
 
-    bool earlyOut = maxVelLengthSqInPixels <= _MinSqVelThreshold;
+    bool earlyOut = maxVelLength <= _MinSqVelThreshold && !ONLY_SLOW_PATH;
 
 #if defined(SUPPORTS_WAVE_INTRINSICS)
-    bool fastPath = WaveActiveAllTrue(minVelLengthSqInPixels > (_MinMaxSqVelRatioForSlowPath * maxVelLengthSqInPixels));
+    bool fastPath = WaveActiveAllTrue(minVelLengthSqInPixels > (_MinMaxSqVelRatioForSlowPath * maxVelLength));
 #else
     // TODO: force it scalar with interlocked add or something like that (it is not always due to the jittering)
-    bool fastPath = minVelLengthSqInPixels > (_MinMaxSqVelRatioForSlowPath * maxVelLengthSqInPixels);
+    bool fastPath = minVelLengthSqInPixels > (_MinMaxSqVelRatioForSlowPath * maxVelLength*maxVelLength);
 #endif
+
+    fastPath = fastPath && !ONLY_SLOW_PATH;
 
 #if DEBUG_VIEW == TILE_VIS
     if (earlyOut)
@@ -163,40 +203,33 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 #else
 
     float3 outVal = 1;
-    if (earlyOut  && !ONLY_SLOW_PATH)
+    if (earlyOut)
     {
         outVal = centralColor;
     }
 
-    const int iterationCount = _SampleCount / 2;
-    const float invIterationCount = 1.0f / iterationCount;
+    const float invSampleCount = 1.0f / _SampleCount;
 
     float2 centerSampleUV = (0.5f + dispatchThreadId.xy) * _ScreenSize.zw;
 
     float randomVal = RandomValue(dispatchThreadId.xy, 0);     // TODO_FCC: Animate
-    float2 forwardDir = 0.5f * maxVel;
+    float2 forwardDir = 0.5f * maxVel;                         // TODO_FCC: Remove this     
     float2 backwardDir = -0.5f * maxVel;
+
+    float2 dir = 0.5f * maxVel;
 
     float3 colorAccumulation = 0.0f;
 
     // Note: anything marked fw_ refer to the forward sample, anything bw_ refers to the backward sample. 
     // TODO_FCC: Make some functions to reduce code redundancy. 
-    if ( fastPath && !ONLY_SLOW_PATH )
+    if ( (fastPath && !ONLY_SLOW_PATH))
     {
-        for (int i = 0; i < iterationCount; ++i)
+        for (int i = 0; i < _SampleCount; ++i)
         {
-            float fw_SampleOffset = ((float)i + randomVal) * invIterationCount;
-            float bw_SampleOffset = ((1.0f + i) - randomVal) * invIterationCount;
-
-            float2 fw_SampleUV = centerSampleUV + fw_SampleOffset * forwardDir;
-            float2 bw_SampleUV = centerSampleUV + bw_SampleOffset * backwardDir;
-
-            // Both forward and back in time.
-            colorAccumulation += SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, fw_SampleUV, 0).xyz;
-            colorAccumulation += SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, bw_SampleUV, 0).xyz;
+            colorAccumulation += ProcessSampleFastPath(i, dir, invSampleCount, centerSampleUV, randomVal);
         }
 
-        colorAccumulation *= 0.5f * invIterationCount;
+        colorAccumulation *= invSampleCount;
 #if DEBUG_VIEW == WEIGHT_VIS
         colorAccumulation = 0;
 #endif
@@ -204,56 +237,21 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     else
     {
         // Slow path.
-        float pixelToSampleScale = iterationCount * maxVelLength;
+        float pixelToSampleScale = _SampleCount * 0.5f * maxVelLength;
 
         float3 velocityAndDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, centerSampleUV, 0).xyz;
         float2 centralTapVelocity = DecodeVelocityFromPacked(velocityAndDepth.xy);
-        float  centralVelocityLen = VelocityLengthFromEncoded(velocityAndDepth.xy);
-        float  centralVelocityLenPixels = centralVelocityLen * sqrt(screenMagnitude);
+        float  centralVelocityLen = VelocityLengthInPixelsFromEncoded(velocityAndDepth.xy);
         float  centralDepth = velocityAndDepth.z;
 
-        // TODO_FCC: Can fold in a function: process sample, given offset len, inv iteration count, dir, centralUV
-        float weightAccumulation = 0.0f;
-        for (int i = 0; i < iterationCount; ++i)
+        float4 accumulation = 0.0f;
+        for (int i = 0; i < _SampleCount; ++i)
         {
-            float  fw_offsetLen     = ((float)i + randomVal);
-            float  fw_SampleOffset  = fw_offsetLen * invIterationCount;
-            float2 fw_SampleUV      = centerSampleUV + fw_SampleOffset * forwardDir;
-
-            float3 fw_SampleVelDepth = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, fw_SampleUV, 0).xyz;
-            float3 fw_SampleColor   = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, fw_SampleUV, 0).xyz;
-
-            float2 fw_SampleVel     = DecodeVelocityFromPacked(fw_SampleVelDepth.xy);
-            float2 fw_SampleVelLen  = VelocityLengthFromEncoded(fw_SampleVelDepth.xy) * sqrt(screenMagnitude);;
-            float  fw_SampleDepth   = fw_SampleVelDepth.z;
-
-            float  fw_SampleWeight = SampleWeight(centralDepth, fw_SampleDepth, fw_offsetLen, centralVelocityLenPixels, fw_SampleVelLen, pixelToSampleScale, SOFT_Z_EXTENT);
-
-            float bw_offsetLen      = ((1.0f + (float)i) - randomVal);
-            float bw_SampleOffset   = bw_offsetLen * invIterationCount;
-            float2 bw_SampleUV      = centerSampleUV + bw_SampleOffset * backwardDir;
-
-
-            float3 bw_SampleVelDepth = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, bw_SampleUV, 0).xyz;
-            float3 bw_SampleColor   = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, bw_SampleUV, 0).xyz;
-
-            float2 bw_SampleVel = DecodeVelocityFromPacked(bw_SampleVelDepth.xy);
-            float2 bw_SampleVelLen = VelocityLengthFromEncoded(bw_SampleVelDepth.xy) * sqrt(screenMagnitude);;
-            float  bw_SampleDepth = bw_SampleVelDepth.z;
-
-            float  bw_SampleWeight = SampleWeight(centralDepth, bw_SampleDepth, bw_offsetLen, centralVelocityLenPixels, bw_SampleVelLen, pixelToSampleScale, SOFT_Z_EXTENT);
-
-            // TODO_FCC
-            // Mirror weights
-            // ------------
-            weightAccumulation += bw_SampleWeight + fw_SampleWeight;
-            colorAccumulation += bw_SampleWeight * bw_SampleColor + fw_SampleWeight * fw_SampleColor;
+            accumulation += ProcessSample(i, dir, invSampleCount, centerSampleUV, centralDepth, centralVelocityLen, pixelToSampleScale, randomVal);
         }
+        accumulation *= invSampleCount;
 
-        colorAccumulation *= 0.5f * invIterationCount;
-        weightAccumulation *= 0.5f * invIterationCount;
-
-        colorAccumulation = colorAccumulation + (1.0f - weightAccumulation) * centralColor;
+        colorAccumulation = accumulation + (1.0f - accumulation.w) * centralColor;
 
 #if DEBUG_VIEW == WEIGHT_VIS
         colorAccumulation = weightAccumulation;
@@ -263,6 +261,8 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 #if DEBUG_VIEW == MAX_VELOCITY
     colorAccumulation = float3(maxVel, 0.0f);
+    float maxVelLenPix = VelocityLengthInPixelsFromEncoded(tileMaxNeighbourhood.xy);
+    colorAccumulation = maxVelLenPix;
 #endif
 
 #if DEBUG_VIEW == CUSTOM
