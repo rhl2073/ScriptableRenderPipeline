@@ -24,7 +24,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl\"",
-//                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl\"",
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl\""
             },
 
@@ -88,6 +87,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 return activeFields;
             }
+            activeFields.Add("Decals4RT");
 
             //if (masterNode.doubleSidedMode != DoubleSidedMode.Disabled)
             //{
