@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
+Shader "Hidden/HDRP/DebugViewMaterialGBuffer"
 {
     SubShader
     {
