@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with vertex displacement being affected by heightmap setting even if not heightmap where assign
 - Fixed issue with density mode on Lit terrain producing NaN
 - Fixed issue when going back and forth from Lit to LitTesselation for displacement mode
+- Fixed issue with ambient occlusion incorrectly apply to emissiveColor with light layers in deferred
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
@@ -48,7 +49,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Separated Passthrough from other RenderingPath
 - Update several properties naming and caption based on feedback from documentation team
 - Remove tile shader variant for transparent backface pass of lit shader
-
+- Rename all HDRenderPipeline to HDRP folder for shaders
+- Rename decal property label (based on doc team feedback)
 
 ## [5.2.0-preview] - 2018-11-27
 
