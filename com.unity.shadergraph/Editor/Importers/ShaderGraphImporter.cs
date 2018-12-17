@@ -79,8 +79,12 @@ Shader ""Hidden/GraphErrorShader2""
             ctx.AddObjectToAsset("MainAsset", shader);
             ctx.SetMainObject(shader);
 
+            var packagesPath = Path.GetFullPath("Packages/");
             foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
-                ctx.DependsOnSourceAsset(sourceAssetDependencyPath);
+            {
+                var dependencyPath = Path.GetFullPath(sourceAssetDependencyPath).Replace(packagesPath, "Packages/");
+                ctx.DependsOnSourceAsset(dependencyPath);
+            }
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths)
