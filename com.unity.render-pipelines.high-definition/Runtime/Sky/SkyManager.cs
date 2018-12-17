@@ -273,7 +273,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_UpdateRequired = true;
         }
 
-        public void UpdateEnvironment(HDCamera camera, Light sunLight, CommandBuffer cmd)
+        public void UpdateEnvironment(HDCamera hdCamera, Light sunLight, CommandBuffer cmd)
         {
             // WORKAROUND for building the player.
             // When building the player, for some reason we end up in a state where frameCount is not updated but all currently setup shader texture are reset to null
@@ -284,7 +284,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode;
             SkyUpdateContext currentSky = m_LightingOverrideSky.IsValid() ? m_LightingOverrideSky : m_VisualSky;
-            m_NeedUpdateRealtimeEnv = m_SkyRenderingContext.UpdateEnvironment(currentSky, camera, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, cmd);
+
+            // Preview should never use dynamic ambient or they will conflict with main view (async readback of sky texture will update ambient probe one frame later
+            if (HDUtils.IsRegularPreviewCamera(hdCamera.camera))
+                ambientMode = SkyAmbientMode.Static;
+
+            m_NeedUpdateRealtimeEnv = m_SkyRenderingContext.UpdateEnvironment(currentSky, hdCamera, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, cmd);
 
             RenderSettings.ambientMode = AmbientMode.Custom; // Needed otherwise internal ambient probe is not updated.
             if (ambientMode == SkyAmbientMode.Static)
@@ -322,7 +327,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (staticLightingSky != null)
             {
                 m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
-                m_StaticLightingSkyRenderingContext.UpdateEnvironment(m_StaticLightingSky, camera, sunLight, false, false, cmd);
+                m_StaticLightingSkyRenderingContext.UpdateEnvironment(m_StaticLightingSky, hdCamera, sunLight, false, false, cmd);
 
                 // Here we update the global SkyMaterial so that it uses our static lighting sky cubemap. This way, next time the GI is baked, the right sky will be present.
                 m_StandardSkyboxMaterial.SetTexture("_Tex", m_StaticLightingSky.IsValid() ? (Texture)m_StaticLightingSkyRenderingContext.cubemapRT : CoreUtils.blackCubeTexture);
