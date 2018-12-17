@@ -7,7 +7,7 @@
 
 #pragma kernel AmbientProbeConvolution KERNEL_NAME=AmbientProbeConvolution
 
-RWStructuredBuffer<float>   _AmbientProbeOutputBuffer;
+RWStructuredBuffer<float> _AmbientProbeOutputBuffer;
 TEXTURECUBE(_AmbientProbeInputCubemap);
 
 // Constants from SetSHEMapConstants function in the Stupid Spherical Harmonics Tricks paper:

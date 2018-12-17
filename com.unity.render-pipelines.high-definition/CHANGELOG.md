@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Separated Passthrough from other RenderingPath
 - Update several properties naming and caption based on feedback from documentation team
 - Remove tile shader variant for transparent backface pass of lit shader
+- Added a new dynamic mode for ambient probe and renamed BakingSky to StaticLightingSky
 
 
 ## [5.2.0-preview] - 2018-11-27
