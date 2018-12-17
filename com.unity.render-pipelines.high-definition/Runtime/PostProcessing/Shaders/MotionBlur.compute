@@ -144,11 +144,11 @@ float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2
     float  offsetLength = (sampleNumber + 0.5f) + (dirSign * (randomVal - 0.5));
     float2 sampleUV = centralUV + (offsetLength*invSampleCount) * currDir;
 
-    float2 sampleVelDepth = SAMPLE_TEXTURE2D_LOD(_VelocityLenAndDepth, s_point_clamp_sampler, sampleUV, 0).xy;
+    float3 sampleVelDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, sampleUV, 0).xyz;
     float3 sampleColor    = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).xyz;
 
-    outVelLength = sampleVelDepth.x;
-    outDepth = sampleVelDepth.y;
+    outVelLength = VelocityLengthInPixelsFromEncoded(sampleVelDepth.xy);
+    outDepth = sampleVelDepth.z;
     float  sampleWeight = SampleWeight(centralDepth, outDepth, offsetLength, centralVelocityLen, outVelLength, pixelToSampleScale, SOFT_Z_EXTENT);
 
     return float4(sampleColor, sampleWeight);
@@ -170,14 +170,14 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float2 tileUV = GetTileUV(dispatchThreadId.xy);
     float3 tileMaxAndMinLength = SAMPLE_TEXTURE2D_LOD(_TileMinMaxVel, s_point_clamp_sampler, tileUV, 0.0f);
-    float3 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0f);
+    float2 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0f);
 
     // Get velocity in pixels extents.
     // TODO_FCC: This should be one texture sample, not two. Find better storage, now just make it work.  
     float2 maxVel = DecodeVelocityFromPacked(tileMaxNeighbourhood.xy);
 
     float maxVelLength = VelocityLengthInPixelsFromEncoded(tileMaxNeighbourhood.xy);
-    float minVelLengthSqInPixels = tileMaxNeighbourhood.z * tileMaxNeighbourhood.z * dot(_ScreenSize.xy, _ScreenSize.xy); // TODO_FCC: Why the heck squared?! Optimize.
+    float minVelLengthSqInPixels =  tileMaxAndMinLength.z * dot(_ScreenSize.xy, _ScreenSize.xy);
 
     bool earlyOut = maxVelLength <= _MinSqVelThreshold && !ONLY_SLOW_PATH;
 
@@ -242,9 +242,10 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         // Slow path.
         float pixelToSampleScale = _SampleCount * 0.5f * maxVelLength;
 
-        float2 sampleVelDepth = SAMPLE_TEXTURE2D_LOD(_VelocityLenAndDepth, s_point_clamp_sampler, centerSampleUV, 0).xy;
-        float  centralVelocityLen = sampleVelDepth.x;
-        float  centralDepth = sampleVelDepth.y;
+        float3 velocityAndDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, centerSampleUV, 0).xyz;
+        float2 centralTapVelocity = DecodeVelocityFromPacked(velocityAndDepth.xy);
+        float  centralVelocityLen = VelocityLengthInPixelsFromEncoded(velocityAndDepth.xy);
+        float  centralDepth = velocityAndDepth.z;
 
         float4 accumulation = 0.0f;
         for (int i = 0; i < _SampleCount / 2; ++i)
