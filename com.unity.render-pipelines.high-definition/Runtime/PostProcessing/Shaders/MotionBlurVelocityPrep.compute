@@ -16,5 +16,5 @@ void VelPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
 
 
-    _VelocityAndDepth[dispatchThreadId.xy] = float3(EncodeVelocity(velocity), linearEyeDepth);
+    _VelocityLenAndDepth[dispatchThreadId.xy] = float2(length(velocity), linearEyeDepth);
 }

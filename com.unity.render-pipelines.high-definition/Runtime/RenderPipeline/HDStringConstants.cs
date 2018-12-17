@@ -556,7 +556,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _UVTransform                    = Shader.PropertyToID("_UVTransform");
 
         // Motion Blur. TODO_FCC: Rename to MotionBlur specific. 
-        public static readonly int _VelocityAndDepth               = Shader.PropertyToID("_VelocityAndDepth");
+        public static readonly int _VelocityLenAndDepth            = Shader.PropertyToID("_VelocityLenAndDepth");
         public static readonly int _TileVelMinMax                  = Shader.PropertyToID("_TileMinMaxVel");
         public static readonly int _TileMaxNeighbourhood           = Shader.PropertyToID("_TileMaxNeighbourhood");
         public static readonly int _TileTargetSize                 = Shader.PropertyToID("_TileTargetSize");
