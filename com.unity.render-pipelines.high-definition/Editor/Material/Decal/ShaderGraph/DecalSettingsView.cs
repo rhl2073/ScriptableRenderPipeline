@@ -30,17 +30,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
-            /*
+            
             int indentLevel = 0;
-            ps.Add(new PropertyRow(CreateLabel("Surface Type", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Affect Metal", indentLevel)), (row) =>
             {
-                row.Add(new EnumField(SurfaceType.Opaque), (field) =>
+                row.Add(new Toggle(), (toggle) =>
                 {
-                    field.value = m_Node.surfaceType;
-                    field.RegisterValueChangedCallback(ChangeSurfaceType);
+                    toggle.value = m_Node.affectsMetal.isOn;
+                    toggle.RegisterValueChangedCallback(ChangeAffectsMetal);
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Affect AO", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.affectsAO.isOn;
+                    toggle.RegisterValueChangedCallback(ChangeAffectsAO);
+                });
+            });
+
+            ps.Add(new PropertyRow(CreateLabel("Affect Smoothness", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.affectsSmoothness.isOn;
+                    toggle.RegisterValueChangedCallback(ChangeAffectsSmoothness);
+                });
+            });
+
+            /*
             if (m_Node.surfaceType == SurfaceType.Transparent)
             {
                 ++indentLevel;
@@ -193,19 +212,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                     field.RegisterValueChangedCallback(ChangeSpecularOcclusionMode);
                 });
             });
-
-            Add(ps);*/
+            */
+            Add(ps);
         }
 
-        void ChangeSurfaceType(ChangeEvent<Enum> evt)
+        void ChangeAffectsMetal(ChangeEvent<bool> evt)
         {
-            /*
-            if (Equals(m_Node.surfaceType, evt.newValue))
-                return;
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Affects Metal Change");
+            ToggleData td = m_Node.affectsMetal;
+            td.isOn = evt.newValue;
+            m_Node.affectsMetal = td;            
+        }
 
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Surface Type Change");
-            m_Node.surfaceType = (SurfaceType)evt.newValue;
-            */
+        void ChangeAffectsAO(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Affects AO Change");
+            ToggleData td = m_Node.affectsAO;
+            td.isOn = evt.newValue;
+            m_Node.affectsAO = td;
+        }
+
+        void ChangeAffectsSmoothness(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Affects Smoothness Change");
+            ToggleData td = m_Node.affectsSmoothness;
+            td.isOn = evt.newValue;
+            m_Node.affectsSmoothness = td;
         }
 
         void ChangeDoubleSidedMode(ChangeEvent<Enum> evt)

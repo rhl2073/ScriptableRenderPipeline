@@ -236,5 +236,51 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             base.CollectShaderProperties(collector, generationMode);
         }
+
+        [SerializeField]
+        bool m_AffectsMetal = true;
+
+        public ToggleData affectsMetal
+        {
+            get { return new ToggleData(m_AffectsMetal); }
+            set
+            {
+                if (m_AffectsMetal == value.isOn)
+                    return;
+                m_AffectsMetal = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_AffectsAO = true;
+
+        public ToggleData affectsAO
+        {
+            get { return new ToggleData(m_AffectsAO); }
+            set
+            {
+                if (m_AffectsAO == value.isOn)
+                    return;
+                m_AffectsAO = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_AffectsSmoothness = true;
+
+        public ToggleData affectsSmoothness
+        {
+            get { return new ToggleData(m_AffectsSmoothness); }
+            set
+            {
+                if (m_AffectsSmoothness == value.isOn)
+                    return;
+                m_AffectsSmoothness = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
     }
 }

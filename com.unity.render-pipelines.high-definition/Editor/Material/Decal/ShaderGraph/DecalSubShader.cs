@@ -10,8 +10,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         Pass m_PassProjector = new Pass()
         {
-            Name = "DBufferProjector",
-            LightMode = "DBufferProjector",
+            Name = "ShaderGraph_DBufferProjector",
+            LightMode = "ShaderGraph_DBufferProjector",
             TemplateName = "DecalPass.template",
             MaterialName = "Decal",
             ShaderPassName = "SHADERPASS_DBUFFER_PROJECTOR",
@@ -29,7 +29,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             RequiredFields = new List<string>()
             {
-                 "AttributesMesh.instanceID",
             },
 
             PixelShaderSlots = new List<int>()
@@ -46,36 +45,111 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             VertexShaderSlots = new List<int>()
             {
-                //                DecalMasterNode.PositionSlotId
             },
+
             UseInPreview = true,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
 
-                //var masterNode = node as DecalMasterNode;
-
-                //int stencilDepthPrepassWriteMask = masterNode.receiveDecals.isOn ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer:0;
-                //int stencilDepthPrepassRef = masterNode.receiveDecals.isOn ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer:0;
-                //stencilDepthPrepassWriteMask |= !masterNode.receiveSSR.isOn ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
-                //stencilDepthPrepassRef |= !masterNode.receiveSSR.isOn ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
-
-                //if (stencilDepthPrepassWriteMask != 0)
-                //{
-                //    pass.StencilOverride = new List<string>()
-                //    {
-                //        "// Stencil setup",
-                //        "Stencil",
-                //        "{",
-                //        string.Format("   WriteMask {0}", stencilDepthPrepassWriteMask),
-                //        string.Format("   Ref  {0}", stencilDepthPrepassRef),
-                //        "   Comp Always",
-                //        "   Pass Replace",
-                //        "}"
-                //    };
-                //}
+                DecalMasterNode masterNode = node as DecalMasterNode;
+                int colorMaskIndex = (masterNode.affectsMetal.isOn ? 1 : 0);
+                colorMaskIndex |= (masterNode.affectsAO.isOn ? 2 : 0);
+                colorMaskIndex |= (masterNode.affectsSmoothness.isOn ? 4 : 0);
+                pass.ColorMaskOverride = m_ColorMasks[colorMaskIndex];
+                pass.StencilOverride = new List<string>()
+                {
+                    "// Stencil setup",
+                    "Stencil",
+                    "{",
+                        string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   Ref  {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        "Comp Always",
+                        "Pass Replace",
+                    "}"
+                };
             }
         };
 
+
+        Pass m_PassMesh = new Pass()
+        {
+            Name = "ShaderGraph_DBufferMesh",
+            LightMode = "ShaderGraph_DBufferMesh",
+            TemplateName = "DecalPass.template",
+            MaterialName = "Decal",
+            ShaderPassName = "SHADERPASS_DBUFFER_MESH",
+
+            ZTestOverride = "ZTest LEqual",
+            ZWriteOverride = "ZWrite Off",
+            BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor",
+
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl\""
+            },
+
+            RequiredFields = new List<string>()
+            {
+                "AttributesMesh.normalOS",
+                "AttributesMesh.tangentOS",     
+                "AttributesMesh.uv0",
+
+                "FragInputs.worldToTangent",
+                "FragInputs.positionRWS",
+                "FragInputs.texCoord0",
+            },
+
+            PixelShaderSlots = new List<int>()
+            {
+                DecalMasterNode.AlbedoSlotId,
+                DecalMasterNode.BaseColorOpacitySlotId,
+                DecalMasterNode.NormalSlotId,
+                DecalMasterNode.NormaOpacitySlotId,
+                DecalMasterNode.MetallicSlotId,
+                DecalMasterNode.AmbientOcclusionSlotId,
+                DecalMasterNode.SmoothnessSlotId,
+                DecalMasterNode.MAOSOpacitySlotId,
+            },
+
+            VertexShaderSlots = new List<int>()
+            {
+            },
+
+            UseInPreview = true,
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+
+                DecalMasterNode masterNode = node as DecalMasterNode;
+                int colorMaskIndex = (masterNode.affectsMetal.isOn ? 1 : 0);
+                colorMaskIndex |= (masterNode.affectsAO.isOn ? 2 : 0);
+                colorMaskIndex |= (masterNode.affectsSmoothness.isOn ? 4 : 0);
+                pass.ColorMaskOverride = m_ColorMasks[colorMaskIndex];
+                pass.StencilOverride = new List<string>()
+                {
+                    "// Stencil setup",
+                    "Stencil",
+                    "{",
+                        string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   Ref  {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        "Comp Always",
+                        "Pass Replace",
+                    "}"
+                };
+            }
+        };
+
+        private static string[] m_ColorMasks = new string[8]
+        {
+            "ColorMask 0 2 ColorMask 0 3",     // nothing
+            "ColorMask R 2 ColorMask R 3",     // metal
+            "ColorMask G 2 ColorMask G 3",     // AO
+            "ColorMask RG 2 ColorMask RG 3",    // metal + AO
+            "ColorMask BA 2 ColorMask 0 3",     // smoothness
+            "ColorMask RBA 2 ColorMask R 3",     // metal + smoothness
+            "ColorMask GBA 2 ColorMask G 3",     // AO + smoothness
+            "ColorMask RGBA 2 ColorMask RG 3",   // metal + AO + smoothness
+        };
 
 
         private static HashSet<string> GetActiveFieldsFromMasterNode(INode iMasterNode, Pass pass)
@@ -88,6 +162,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return activeFields;
             }
             activeFields.Add("Decals4RT");
+
+
 
             //if (masterNode.doubleSidedMode != DoubleSidedMode.Disabled)
             //{
@@ -271,6 +347,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
                 GenerateShaderPass(masterNode, m_PassProjector, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(masterNode, m_PassMesh, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
