@@ -313,25 +313,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
 #if UNITY_EDITOR
+            // Here we update the global SkyMaterial so that it uses our static lighting sky cubemap. This way, next time the GI is baked, the right sky will be baked in.
             StaticLightingSky staticLightingSky = GetStaticLightingSky();
             if (staticLightingSky != null)
             {
                 m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
                 m_StaticLightingSkyRenderingContext.UpdateEnvironment(m_StaticLightingSky, hdCamera, sunLight, false, false, cmd);
 
-                // Here we update the global SkyMaterial so that it uses our static lighting sky cubemap. This way, next time the GI is baked, the right sky will be baked in.
                 m_StandardSkyboxMaterial.SetTexture("_Tex", m_StaticLightingSky.IsValid() ? (Texture)m_StaticLightingSkyRenderingContext.cubemapRT : CoreUtils.blackCubeTexture);
-                RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
-                RenderSettings.ambientIntensity = 1.0f;
-                RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
-                RenderSettings.reflectionIntensity = 1.0f;
-                RenderSettings.customReflection = null;
             }
             else
             {
                 m_StandardSkyboxMaterial.SetTexture("_Tex", CoreUtils.blackCubeTexture);
-                RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
             }
+
+            RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
+            RenderSettings.ambientIntensity = 1.0f;
+            RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
+            RenderSettings.reflectionIntensity = 1.0f;
+            RenderSettings.customReflection = null;
 #endif
         }
 

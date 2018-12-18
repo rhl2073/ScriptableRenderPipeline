@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -8,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         [SerializeField]
         VolumeProfile m_Profile;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("m_BakingSkyUniqueID")]
         int m_StaticLightingSkyUniqueID = 0;
         [SerializeField]
         SphericalHarmonicsL2 m_AmbientProbe;

@@ -67,30 +67,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             UpdateSkyAndFogIntPopupData();
 
-            EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Sky"), EditorStyles.miniLabel);
+            EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Sky"), EditorStyles.miniLabel);
             using (new EditorGUILayout.HorizontalScope())
             {
 
                 DrawOverrideCheckbox(m_SkyType);
                 using (new EditorGUI.DisabledScope(!m_SkyType.overrideState.boolValue))
                 {
-                    EditorGUILayout.IntPopup(m_SkyType.value, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), CoreEditorUtils.GetContent("Type"));
+                    EditorGUILayout.IntPopup(m_SkyType.value, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Type"));
                 }
             }
-            PropertyField(m_SkyAmbientMode, CoreEditorUtils.GetContent("Ambient Mode"));
+            PropertyField(m_SkyAmbientMode, EditorGUIUtility.TrTextContent("Ambient Mode"));
 
             if ( ((SkyAmbientMode)m_SkyAmbientMode.value.enumValueIndex == SkyAmbientMode.Static) && SkyManager.GetStaticLightingSky() == null)
             {
                 EditorGUILayout.HelpBox("A Static Lighting Sky Component is required for Static Ambient Mode.", MessageType.Info);
             }
 
-            EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Fog"), EditorStyles.miniLabel);
+            EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Fog"), EditorStyles.miniLabel);
             using (new EditorGUILayout.HorizontalScope())
             {
                 DrawOverrideCheckbox(m_FogType);
                 using (new EditorGUI.DisabledScope(!m_FogType.overrideState.boolValue))
                 {
-                    EditorGUILayout.IntPopup(m_FogType.value, m_FogNames.ToArray(), fogValues, CoreEditorUtils.GetContent("Type"));
+                    EditorGUILayout.IntPopup(m_FogType.value, m_FogNames.ToArray(), fogValues, EditorGUIUtility.TrTextContent("Type"));
                 }
             }
         }
