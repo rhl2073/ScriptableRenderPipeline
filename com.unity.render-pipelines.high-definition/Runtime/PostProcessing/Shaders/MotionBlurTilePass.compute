@@ -31,7 +31,7 @@ groupshared float2 gs_maxVel[((TILE_SIZE * TILE_SIZE))];
 #endif
 
 // TODO_FCC: Do dispatch indirect for the fast pass. 
-
+// TODO_FCC: Optimize to avoid computing length for each sample.
 #ifdef GEN_PASS 
 [numthreads(TILE_SIZE, TILE_SIZE,1)]
 void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID: SV_GroupID)
@@ -126,26 +126,54 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 [numthreads(8, 8, 1)]
 void TileNeighbourhood(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
-    // Sample the 1-ring neighbourhood of tile texture
-    float3 centralSample = _TileMinMaxVel[id.xy + uint2( 0,  0)].xyz;
-    float2 v0       = _TileMinMaxVel[id.xy + int2(-1,  1)].xy;
-    float2 v1       = _TileMinMaxVel[id.xy + int2( 0,  1)].xy;
-    float2 v2       = _TileMinMaxVel[id.xy + int2( 1,  1)].xy;
+    // We follow mcguire 2013 here, when computing dominant direction we ignore velocities that
+    // are completely off the path of the central one. 
+    // We still compute the min velocity in a 1-ring neighbourhood
 
-    float2 v3       = _TileMinMaxVel[id.xy + int2(-1,  0)].xy;
-    float2 v4       = centralSample.xy;
-    float2 v5       = _TileMinMaxVel[id.xy + int2( 1,  0)].xy;
+    // Stored explicitly to leverage Min3. TODO_FCC: Check if this hamper perf.
+    float minVels[9] = {0.0f,   0.0f,  0.0f,
+                       0.0f,    0.0f,  0.0f,
+                       0.0f,    0.0f,  0.0f};
 
-    float2 v6       = _TileMinMaxVel[id.xy + int2(-1, -1)].xy;
-    float2 v7       = _TileMinMaxVel[id.xy + int2( 0, -1)].xy;
-    float2 v8       = _TileMinMaxVel[id.xy + int2( 1, -1)].xy;
+    int i=0; 
 
-    // TODO_FCC Can we use Max3 somehow? 
-    float2 maxVel0 = MaxVel(v0, MaxVel(v1, v2));
-    float2 maxVel1 = MaxVel(v3, MaxVel(v4, v5));
-    float2 maxVel2 = MaxVel(v6, MaxVel(v7, v8));
+    float  maxVelLengthSq = -1;
+    float2 maxVel;
+    for(int y=-1; y<=1; ++y)
+    {
+        for(int x=-1; x<=1; ++x)
+        {
+            // TODO_FCC: Clamp.
+            int2 offset = int2(x, y);
+            float3 minMaxSample = _TileMinMaxVel[id.xy + offset].xyz;
+            float2 currVel = minMaxSample.xy;
+            float currVelSq = dot(currVel, currVel);
 
-    _TileMaxNeighbourhood[id.xy] = float4(MaxVel(maxVel0, MaxVel(maxVel1, maxVel2)), centralSample.z, 0) ;
+            if(maxVelLengthSq < currVelSq)
+            {
+                int2 relativeSigns = sign(currVel * offset);
+                int  relativeDist = abs(relativeSigns.x + relativeSigns.y);
+
+                // Sample velocity needs to either match or be complete opposite signs relative
+                // to their position in the 1-ring (i.e. relative to offset). 
+                int manhattanDist = abs(offset.x) + abs(offset.y);
+                if(manhattanDist == relativeDist)
+                {
+                    maxVel = currVel;
+                    maxVelLengthSq = currVelSq;
+                }
+            }
+
+            minVels[i++] = minMaxSample.z;
+        }
+    }
+
+
+    float minVel0 = Min3(minVels[0], minVels[1], minVels[2]);
+    float minVel1 = Min3(minVels[3], minVels[4], minVels[5]);
+    float minVel2 = Min3(minVels[6], minVels[7], minVels[8]);
+
+    _TileMaxNeighbourhood[id.xy] = float4(maxVel, Min3(minVel0, minVel1, minVel2), 0) ;
 }
 
 #endif
