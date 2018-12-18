@@ -21,7 +21,7 @@ Texture2D _InputTexture;
 #define MAX_VELOCITY 3
 #define CUSTOM 4
 
-#define DEBUG_VIEW NO_DEBUG
+#define DEBUG_VIEW TILE_VIS
 
 
 // ------------Debug Weight------------------
@@ -37,7 +37,7 @@ Texture2D _InputTexture;
 #define NORMAL 0
 #define ONLY_SLOW_PATH 1
 
-#define DEBUG_EXECUTION ONLY_SLOW_PATH
+#define DEBUG_EXECUTION NORMAL
 
 #define MIRROR_WEIGHTS 0        // TODO_FCC: To test with noisy background.
 
@@ -116,12 +116,6 @@ void MirrorWeights(float depth1, float depth2, float vel1, float vel2, inout flo
     weight2 = any( mirror ) ? weight2 : weight1;
 }
 
-float SouzaWeights(float centralDepth, float sampleDepth, float offsetLength, float centralSpreadLength, float sampleSpreadLength, float pixelToSampleScale, float depthScale)
-{
-
-}
-
-
 // ---------------------------------------------
 // Sample processing 
 // ---------------------------------------------
@@ -169,17 +163,16 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 centralColor = _InputTexture[dispatchThreadId.xy].xyz;
 
     float2 tileUV = GetTileUV(dispatchThreadId.xy);
-    float3 tileMaxAndMinLength = SAMPLE_TEXTURE2D_LOD(_TileMinMaxVel, s_point_clamp_sampler, tileUV, 0.0f);
-    float2 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0f);
+    float3 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0f);
 
     // Get velocity in pixels extents.
     // TODO_FCC: This should be one texture sample, not two. Find better storage, now just make it work.  
     float2 maxVel = DecodeVelocityFromPacked(tileMaxNeighbourhood.xy);
 
     float maxVelLength = VelocityLengthInPixelsFromEncoded(tileMaxNeighbourhood.xy);
-    float minVelLengthSqInPixels =  tileMaxAndMinLength.z * dot(_ScreenSize.xy, _ScreenSize.xy);
+    float minVelLengthSqInPixels =  tileMaxNeighbourhood.z * dot(_ScreenSize.xy, _ScreenSize.xy);
 
-    bool earlyOut = maxVelLength <= _MinSqVelThreshold && !ONLY_SLOW_PATH;
+    bool earlyOut = maxVelLength <= _MinSqVelThreshold && !(DEBUG_EXECUTION == ONLY_SLOW_PATH);
 
 #if defined(SUPPORTS_WAVE_INTRINSICS)
     bool fastPath = WaveActiveAllTrue(minVelLengthSqInPixels > (_MinMaxSqVelRatioForSlowPath * maxVelLength));
@@ -188,7 +181,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     bool fastPath = minVelLengthSqInPixels > (_MinMaxSqVelRatioForSlowPath * maxVelLength*maxVelLength);
 #endif
 
-    fastPath = fastPath && !ONLY_SLOW_PATH;
+    fastPath = fastPath && !(DEBUG_EXECUTION == ONLY_SLOW_PATH);
 
 #if DEBUG_VIEW == TILE_VIS
     if (earlyOut)
@@ -225,7 +218,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     // Note: anything marked fw_ refer to the forward sample, anything bw_ refers to the backward sample. 
     // TODO_FCC: Make some functions to reduce code redundancy. 
-    if ( (fastPath && !ONLY_SLOW_PATH))
+    if ( (fastPath && !(DEBUG_EXECUTION == ONLY_SLOW_PATH)))
     {
         for (int i = 0; i < _SampleCount; ++i)
         {

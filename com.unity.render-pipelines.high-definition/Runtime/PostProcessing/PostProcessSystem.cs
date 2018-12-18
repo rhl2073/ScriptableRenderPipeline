@@ -1177,9 +1177,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector2 tileTexScale = new Vector2((float)tileTexWidth / camera.actualWidth, (float)tileTexHeight / camera.actualHeight);
             Vector4 tileTargetSize = new Vector4(tileTexWidth, tileTexHeight, 1.0f / tileTexWidth, 1.0f / tileTexHeight);
 
+            // Need to change these factors.
             RTHandle preppedVelocity = m_Pool.Get(Vector2.one, RenderTextureFormat.ARGBHalf);
             RTHandle minMaxTileVel = m_Pool.Get(tileTexScale, RenderTextureFormat.ARGBHalf);
-            RTHandle maxTileNeigbourhood = m_Pool.Get(tileTexScale, RenderTextureFormat.RGHalf);
+            RTHandle maxTileNeigbourhood = m_Pool.Get(tileTexScale, RenderTextureFormat.ARGBHalf);
 
             // -----------------------------------------------------------------------------
             // Prep velocity
@@ -1226,7 +1227,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeFloatParam(cs, HDShaderIDs._MinSqVelThreshold, m_MotionBlur.minVelSqInPixels);

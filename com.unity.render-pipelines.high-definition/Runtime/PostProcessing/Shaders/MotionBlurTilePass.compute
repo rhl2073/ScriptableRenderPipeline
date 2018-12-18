@@ -127,12 +127,13 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 void TileNeighbourhood(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
     // Sample the 1-ring neighbourhood of tile texture
+    float3 centralSample = _TileMinMaxVel[id.xy + uint2( 0,  0)].xyz;
     float2 v0       = _TileMinMaxVel[id.xy + uint2(-1,  1)].xy;
     float2 v1       = _TileMinMaxVel[id.xy + uint2( 0,  1)].xy;
     float2 v2       = _TileMinMaxVel[id.xy + uint2( 1,  1)].xy;
 
     float2 v3       = _TileMinMaxVel[id.xy + uint2(-1,  0)].xy;
-    float2 v4       = _TileMinMaxVel[id.xy + uint2( 0,  0)].xy;
+    float2 v4       = centralSample.xy;
     float2 v5       = _TileMinMaxVel[id.xy + uint2( 1,  0)].xy;
 
     float2 v6       = _TileMinMaxVel[id.xy + uint2(-1, -1)].xy;
@@ -144,7 +145,7 @@ void TileNeighbourhood(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex,
     float2 maxVel1 = MaxVel(v3, MaxVel(v4, v5));
     float2 maxVel2 = MaxVel(v6, MaxVel(v7, v8));
 
-    _TileMaxNeighbourhood[id.xy] = MaxVel(maxVel0, MaxVel(maxVel1, maxVel2));
+    _TileMaxNeighbourhood[id.xy] = float4(MaxVel(maxVel0, MaxVel(maxVel1, maxVel2)), centralSample.z, 0) ;
 }
 
 #endif

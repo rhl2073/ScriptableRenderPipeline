@@ -18,9 +18,9 @@ Texture2D<float3> _TileMinMaxVel;
 #endif
 
 #if NEIGHBOURHOOD_PASS
-RWTexture2D<float2> _TileMaxNeighbourhood;
+RWTexture2D<float4> _TileMaxNeighbourhood;
 #else
-Texture2D<float2> _TileMaxNeighbourhood;
+Texture2D<float4> _TileMaxNeighbourhood;
 #endif
 
 
