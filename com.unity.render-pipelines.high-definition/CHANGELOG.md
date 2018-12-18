@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with vertex displacement being affected by heightmap setting even if not heightmap where assign
 - Fixed issue with density mode on Lit terrain producing NaN
 - Fixed issue when going back and forth from Lit to LitTesselation for displacement mode
-- Fixed issue with ambient occlusion incorrectly apply to emissiveColor with light layers in deferred
+- Fixed issue with ambient occlusion incorrectly applied to emissiveColor with light layers in deferred
 - Fixed issue with fabric convolution not using the correct convolved texture when fabric convolution is enabled
 - Fixed issue with Thick mode for Transmission that was disabling transmission with directional light
 
