@@ -150,7 +150,7 @@ namespace UnityEditor.VFX.UIElements
 
         public override bool hasFocus
         {
-            get { return ((FloatField)m_Field).HasFocus(); }
+            get { return ((FloatField)m_Field).HasFocus() || (panel != null && panel.focusController.focusedElement == m_Field as VisualElement); }
         }
 
         protected override float ValueToFloat(float value)
@@ -207,7 +207,7 @@ namespace UnityEditor.VFX.UIElements
 
         public override bool hasFocus
         {
-            get {return ((IntegerField)m_Field).HasFocus(); }
+            get { return ((IntegerField)m_Field).HasFocus() || (panel != null && panel.focusController.focusedElement == m_Field as VisualElement); }
         }
 
         protected override float ValueToFloat(int value)
@@ -240,7 +240,7 @@ namespace UnityEditor.VFX.UIElements
 
         public override bool hasFocus
         {
-            get { return ((LongField)m_Field).HasFocus(); }
+            get { return ((LongField)m_Field).HasFocus() || (panel != null && panel.focusController.focusedElement == m_Field as VisualElement); }
         }
 
         protected override float ValueToFloat(long value)
