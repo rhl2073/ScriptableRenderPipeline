@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with density mode on Lit terrain producing NaN
 - Fixed issue when going back and forth from Lit to LitTesselation for displacement mode
 - Fixed issue with ambient occlusion incorrectly apply to emissiveColor with light layers in deferred
+- Fixed issue with fabric convolution not using the correct convolved texture when fabric convolution is enabled
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
@@ -51,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove tile shader variant for transparent backface pass of lit shader
 - Rename all HDRenderPipeline to HDRP folder for shaders
 - Rename decal property label (based on doc team feedback)
+- Add command buffer parameter to all Bind() method of material
 
 ## [5.2.0-preview] - 2018-11-27
 
