@@ -26,11 +26,14 @@ Texture2D<float4> _TileMaxNeighbourhood;
 
 CBUFFER_START(MotionBlurUniformBuffer)
 float4 _TileTargetSize;     // .xy size, .zw 1/size
-float  _MinSqVelThreshold;
-float  _MinMaxSqVelRatioForSlowPath;
+float4 _MotionBlurParams0;  // Unpacked below. 
 int    _SampleCount;
-float _MotionBlurMaxVelocity;
 CBUFFER_END
+
+#define _ScreenMagnitude _MotionBlurParams0.x
+#define _MotionBlurMaxVelocity _MotionBlurParams0.y
+#define _MinSqVelThreshold  _MotionBlurParams0.z
+#define _MinMaxSqVelRatioForSlowPath _MotionBlurParams0.w
 
 
 // --------------------------------------
@@ -53,8 +56,7 @@ float2 EncodeVelocity(float2 velocity)
     else
     {
         /// TODO_FCC: This is to be removed
-        float pixelLength = length(_ScreenSize.xy);
-        velLength = min(velLength, pixelLength * 64);
+        velLength = min(velLength, _ScreenMagnitude * 64);
         /////
 
         float theta = atan2(velocity.y, velocity.x) + PI;       // TODO_FCC: Verify if it's beneficial to move the +PI as -PI during decoding.
@@ -67,7 +69,7 @@ float2 EncodeVelocity(float2 velocity)
     // TODO_FCC: PASS THIS 64 AS PARAM
     if(len > 0)
     {
-        return min(len, _MotionBlurMaxVelocity / length(_ScreenSize.xy)) * normalize(velocity);
+        return min(len, _MotionBlurMaxVelocity / _ScreenMagnitude) * normalize(velocity);
     }
     else return 0;
 #endif
@@ -85,7 +87,7 @@ float VelocityLengthFromEncoded(float2 velocity)
 float VelocityLengthInPixelsFromEncoded(float2 velocity)
 {
 #if PACKING
-    return  velocity.x * length(_ScreenSize.xy);
+    return  velocity.x * _ScreenMagnitude;
 #else
     return length(velocity * _ScreenSize.xy);
 #endif

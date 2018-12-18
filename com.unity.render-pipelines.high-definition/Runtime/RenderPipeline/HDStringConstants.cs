@@ -560,10 +560,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _TileVelMinMax                  = Shader.PropertyToID("_TileMinMaxVel");
         public static readonly int _TileMaxNeighbourhood           = Shader.PropertyToID("_TileMaxNeighbourhood");
         public static readonly int _TileTargetSize                 = Shader.PropertyToID("_TileTargetSize");
-        public static readonly int _MinSqVelThreshold              = Shader.PropertyToID("_MinSqVelThreshold");
-        public static readonly int _MinMaxSqVelRatioForSlowPath    = Shader.PropertyToID("_MinMaxSqVelRatioForSlowPath");
         public static readonly int _MotionBlurSampleCount          = Shader.PropertyToID("_SampleCount");
-        public static readonly int _MotionBlurMaxVelocity          = Shader.PropertyToID("_MotionBlurMaxVelocity");
+        public static readonly int _MotionBlurMaxVelocity          = Shader.PropertyToID("_MotionBlurParams0");
+
 
 
     }
