@@ -79,11 +79,15 @@ Shader ""Hidden/GraphErrorShader2""
             ctx.AddObjectToAsset("MainAsset", shader);
             ctx.SetMainObject(shader);
 
-            var packagesPath = Path.GetFullPath("Packages/");
             foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
             {
-                var dependencyPath = Path.GetFullPath(sourceAssetDependencyPath).Replace(packagesPath, "Packages/");
-                ctx.DependsOnSourceAsset(dependencyPath);
+                // Ensure that dependency path is relative to project
+                if (!sourceAssetDependencyPath.StartsWith("Packages/") && !sourceAssetDependencyPath.StartsWith("Assets/"))
+                {
+                    Debug.LogWarning($"Invalid dependency path: {sourceAssetDependencyPath}");
+                    continue;
+                }
+                ctx.DependsOnSourceAsset(sourceAssetDependencyPath);
             }
         }
 
