@@ -543,15 +543,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 get
                 {
-                    if(m_IsHDRenderPipelineDecal)
-                    {
-                        return this.m_Material.GetInt("_DrawOrder");
-                    }
-                    else
-                    {
-                        // TODO
-                        return 0;
-                    }
+                    return this.m_Material.GetInt("_DrawOrder");
                 }
             }
 

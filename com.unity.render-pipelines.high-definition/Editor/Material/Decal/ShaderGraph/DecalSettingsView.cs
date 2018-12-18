@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
     {
         DecalMasterNode m_Node;
 
-        IntegerField m_SortPiorityField;
+        IntegerField m_DrawOrderField;
 
         Label CreateLabel(string text, int indentLevel)
         {
@@ -59,160 +59,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
-            /*
-            if (m_Node.surfaceType == SurfaceType.Transparent)
+            m_DrawOrderField = new IntegerField();
+            ps.Add(new PropertyRow(CreateLabel("Draw Order", indentLevel)), (row) =>
             {
-                ++indentLevel;
-
-                ps.Add(new PropertyRow(CreateLabel("Blend Preserves Specular", indentLevel)), (row) =>
+                row.Add(m_DrawOrderField, (field) =>
                 {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.blendPreserveSpecular.isOn;
-                        toggle.OnToggleChanged(ChangeBlendPreserveSpecular);
-                    });
-                });
-
-                ps.Add(new PropertyRow(CreateLabel("Fog", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.transparencyFog.isOn;
-                        toggle.OnToggleChanged(ChangeTransparencyFog);
-                    });
-                });
-
-                ps.Add(new PropertyRow(CreateLabel("Back Then Front Rendering", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.backThenFrontRendering.isOn;
-                        toggle.OnToggleChanged(ChangeBackThenFrontRendering);
-                    });
-                });
-
-                m_SortPiorityField = new IntegerField();
-                ps.Add(new PropertyRow(CreateLabel("Sort Priority", indentLevel)), (row) =>
-                {
-                    row.Add(m_SortPiorityField, (field) =>
-                    {
-                        field.value = m_Node.sortPriority;
-                        field.RegisterValueChangedCallback(ChangeSortPriority);
-                    });
-                });
-                --indentLevel;
-            }
-
-            ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.alphaTest.isOn;
-                    toggle.OnToggleChanged(ChangeAlphaTest);
+                    field.value = m_Node.drawOrder;
+                    field.RegisterValueChangedCallback(ChangeDrawOrder);
                 });
             });
 
-            if (m_Node.surfaceType == SurfaceType.Transparent && m_Node.alphaTest.isOn)
-            {
-                ++indentLevel;
-                ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff Depth Prepass", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.alphaTestDepthPrepass.isOn;
-                        toggle.OnToggleChanged(ChangeAlphaTestPrepass);
-                    });
-                });
-
-                ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff Depth Postpass", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.alphaTestDepthPostpass.isOn;
-                        toggle.OnToggleChanged(ChangeAlphaTestPostpass);
-                    });
-                });
-                --indentLevel;
-            }
-
-            ps.Add(new PropertyRow(CreateLabel("Double Sided", indentLevel)), (row) =>
-            {
-                row.Add(new EnumField(DoubleSidedMode.Disabled), (field) =>
-                {
-                    field.value = m_Node.doubleSidedMode;
-                    field.RegisterValueChangedCallback(ChangeDoubleSidedMode);
-                });
-            });
-
-            ps.Add(new PropertyRow(CreateLabel("Energy Conserving Specular", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.energyConservingSpecular.isOn;
-                    toggle.OnToggleChanged(ChangeEnergyConservingSpecular);
-                });
-            });
-
-            ps.Add(new PropertyRow(CreateLabel("Material Type", indentLevel)), (row) =>
-            {
-                row.Add(new EnumField(DecalMasterNode.MaterialType.CottonWool), (field) =>
-                {
-                    field.value = m_Node.materialType;
-                    field.RegisterValueChangedCallback(ChangeMaterialType);
-                });
-            });
-
-            ps.Add(new PropertyRow(CreateLabel("Transmission", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.transmission.isOn;
-                    toggle.OnToggleChanged(ChangeTransmission);
-                });
-            });
-
-
-            if (m_Node.surfaceType != SurfaceType.Transparent)
-            {
-                ps.Add(new PropertyRow(CreateLabel("Subsurface Scattering", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.subsurfaceScattering.isOn;
-                        toggle.OnToggleChanged(ChangeSubsurfaceScattering);
-                    });
-                });
-            }
-
-
-
-           ps.Add(new PropertyRow(CreateLabel("Receive Decals", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.receiveDecals.isOn;
-                    toggle.OnToggleChanged(ChangeDecal);
-                });
-            });
-
-            ps.Add(new PropertyRow(CreateLabel("Receives SSR", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.receiveSSR.isOn;
-                    toggle.OnToggleChanged(ChangeSSR);
-                });
-            });
-
-            ps.Add(new PropertyRow(CreateLabel("Specular Occlusion Mode", indentLevel)), (row) =>
-            {
-                row.Add(new EnumField(SpecularOcclusionMode.Off), (field) =>
-                {
-                    field.value = m_Node.specularOcclusionMode;
-                    field.RegisterValueChangedCallback(ChangeSpecularOcclusionMode);
-                });
-            });
-            */
             Add(ps);
         }
 
@@ -310,15 +166,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             //m_Node.backThenFrontRendering = td;
         }
 
-        void ChangeSortPriority(ChangeEvent<int> evt)
+        void ChangeDrawOrder(ChangeEvent<int> evt)
         {
-            //m_Node.sortPriority = Math.Max(-HDRenderQueue.k_TransparentPriorityQueueRange, Math.Min(evt.newValue, HDRenderQueue.k_TransparentPriorityQueueRange));
-            //// Force the text to match.
-            //m_SortPiorityField.value = m_Node.sortPriority;
-            //if (Equals(m_Node.sortPriority, evt.newValue))
-            //    return;
-
-            //m_Node.owner.owner.RegisterCompleteObjectUndo("Sort Priority Change");
+            m_Node.drawOrder = evt.newValue;
+            m_DrawOrderField.value = m_Node.drawOrder;
+            if (Equals(m_Node.drawOrder, evt.newValue))
+                return;
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Draw Order Change");
         }
 
         void ChangeAlphaTest(ChangeEvent<bool> evt)
