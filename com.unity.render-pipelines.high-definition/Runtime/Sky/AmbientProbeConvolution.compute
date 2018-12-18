@@ -37,13 +37,18 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
 {
     uint sampleCount = SAMPLE_COUNT;
 
-    float weight = 4.0f * PI / (sampleCount);
-
     float2 cubeSize;
     _AmbientProbeInputCubemap.GetDimensions(cubeSize.x, cubeSize.y);
 
+    // Prefiltered importance sampling
+    // Use lower MIP-map levels for fetching samples with low probabilities
+    // in order to reduce the variance.
+    // Ref: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html
+    //
+    // - OmegaS: Solid angle associated with the sample
+    // - OmegaP: Solid angle associated with the texel of the cubemap
     float invOmegaP = (6.0f * cubeSize.x * cubeSize.y) / FOUR_PI;
-    float pdf = 1.0f / FOUR_PI;
+    float pdf = 1.0f / FOUR_PI; // Solid angle of the sphere is 4*PI
     float omegaS = rcp(sampleCount) * rcp(pdf);
     float mipLevel = 0.5 * log2(omegaS * invOmegaP);
 
@@ -108,6 +113,7 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
     // Parallel reduction of all threads result.
     for (uint k = 0; k < FastLog2(SAMPLE_COUNT); ++k)
     {
+        // Each loop iteration, even threads store their result in LDS, odd threads sum them up back to local VGPR until all results are summed up.
         if ((dispatchThreadId & ((2 << k) - 1)) == (1 << k))
         {
             uint index = dispatchThreadId >> (k + 1);
@@ -131,6 +137,8 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
         GroupMemoryBarrierWithGroupSync();
     }
 #endif
+
+    float weight = 4.0f * PI / (sampleCount);
 
     // Write to memory and convolution + weighing
     if (dispatchThreadId == 0)
