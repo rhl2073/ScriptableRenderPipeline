@@ -1185,8 +1185,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector4 motionBlurParams0 = new Vector4(
                 (new Vector2(camera.actualWidth, camera.actualHeight).magnitude),
                 m_MotionBlur.maxVelocity,
-                m_MotionBlur.minVelSqInPixels,
-                m_MotionBlur.tileMinMaxVelSqRatioForHighQuality
+                m_MotionBlur.minVelInPixels,
+                m_MotionBlur.tileMinMaxVelRatioForHighQuality
             );
 
             // -----------------------------------------------------------------------------

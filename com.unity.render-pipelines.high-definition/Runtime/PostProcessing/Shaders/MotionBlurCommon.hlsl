@@ -32,8 +32,8 @@ CBUFFER_END
 
 #define _ScreenMagnitude _MotionBlurParams0.x
 #define _MotionBlurMaxVelocity _MotionBlurParams0.y
-#define _MinSqVelThreshold  _MotionBlurParams0.z
-#define _MinMaxSqVelRatioForSlowPath _MotionBlurParams0.w
+#define _MinVelThreshold  _MotionBlurParams0.z
+#define _MinMaxVelRatioForSlowPath _MotionBlurParams0.w
 
 
 // --------------------------------------

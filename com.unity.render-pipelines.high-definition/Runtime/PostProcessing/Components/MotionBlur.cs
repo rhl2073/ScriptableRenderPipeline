@@ -23,8 +23,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public MinFloatParameter maxVelocity = new MinFloatParameter(64.0f, 1.0f);
 
         // Advanced settings
-        public MinFloatParameter minVelSqInPixels = new MinFloatParameter(0.5f, 0.0f);
-        public MinFloatParameter tileMinMaxVelSqRatioForHighQuality = new MinFloatParameter(0.5f, 0.0f);
+        public MinFloatParameter minVelInPixels = new MinFloatParameter(0.25f, 0.0f);
+        public MinFloatParameter tileMinMaxVelRatioForHighQuality = new MinFloatParameter(0.25f, 0.0f);
 
         public BoolParameter highQuality = new BoolParameter(true);
 

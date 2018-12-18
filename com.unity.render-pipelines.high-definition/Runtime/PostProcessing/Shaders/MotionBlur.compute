@@ -163,22 +163,22 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 centralColor = _InputTexture[dispatchThreadId.xy].xyz;
 
     float2 tileUV = GetTileUV(dispatchThreadId.xy);
-    float3 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0f);
+    float3 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0f).xyz;
 
     // Get velocity in pixels extents.
     // TODO_FCC: This should be one texture sample, not two. Find better storage, now just make it work.  
     float2 maxVel = DecodeVelocityFromPacked(tileMaxNeighbourhood.xy);
 
     float maxVelLength = VelocityLengthInPixelsFromEncoded(tileMaxNeighbourhood.xy);
-    float minVelLengthSqInPixels =  tileMaxNeighbourhood.z * dot(_ScreenSize.xy, _ScreenSize.xy);
+    float minVelLengthInPixels =  tileMaxNeighbourhood.z * _ScreenMagnitude;
 
-    bool earlyOut = maxVelLength <= _MinSqVelThreshold && !(DEBUG_EXECUTION == ONLY_SLOW_PATH);
+    bool earlyOut = maxVelLength <= _MinVelThreshold && !(DEBUG_EXECUTION == ONLY_SLOW_PATH);
 
 #if defined(SUPPORTS_WAVE_INTRINSICS)
-    bool fastPath = WaveActiveAllTrue(minVelLengthSqInPixels > (_MinMaxSqVelRatioForSlowPath * maxVelLength));
+    bool fastPath = WaveActiveAllTrue(minVelLengthInPixels > (_MinMaxVelRatioForSlowPath * maxVelLength));
 #else
     // TODO: force it scalar with interlocked add or something like that (it is not always due to the jittering)
-    bool fastPath = minVelLengthSqInPixels > (_MinMaxSqVelRatioForSlowPath * maxVelLength*maxVelLength);
+    bool fastPath = minVelLengthInPixels > (_MinMaxVelRatioForSlowPath * maxVelLength);
 #endif
 
     fastPath = fastPath && !(DEBUG_EXECUTION == ONLY_SLOW_PATH);

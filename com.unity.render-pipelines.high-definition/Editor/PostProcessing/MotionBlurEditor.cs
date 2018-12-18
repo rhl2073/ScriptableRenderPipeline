@@ -12,8 +12,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedDataParameter m_SampleCount;
         SerializedDataParameter m_MaxVelocityInPixels;
 
-        SerializedDataParameter m_MinVelSqInPixels;
-        SerializedDataParameter m_TileMinMaxVelSqRatioForHighQuality;
+        SerializedDataParameter m_MinVelInPixels;
+        SerializedDataParameter m_TileMinMaxVelRatioForHighQuality;
 
         public override bool hasAdvancedMode => true;
 
@@ -22,9 +22,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var o = new PropertyFetcher<MotionBlur>(serializedObject);
 
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
-            m_MinVelSqInPixels = Unpack(o.Find(x => x.minVelSqInPixels));
+            m_MinVelInPixels = Unpack(o.Find(x => x.minVelInPixels));
             m_MaxVelocityInPixels = Unpack(o.Find(x => x.maxVelocity));
-            m_TileMinMaxVelSqRatioForHighQuality = Unpack(o.Find(x => x.tileMinMaxVelSqRatioForHighQuality));
+            m_TileMinMaxVelRatioForHighQuality = Unpack(o.Find(x => x.tileMinMaxVelRatioForHighQuality));
         }
 
         public override void OnInspectorGUI()
@@ -37,8 +37,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (advanced)
             {
-                PropertyField(m_MinVelSqInPixels);
-                PropertyField(m_TileMinMaxVelSqRatioForHighQuality);
+                PropertyField(m_MinVelInPixels);
+                PropertyField(m_TileMinMaxVelRatioForHighQuality);
 
                 // Advanced stuff
             }
