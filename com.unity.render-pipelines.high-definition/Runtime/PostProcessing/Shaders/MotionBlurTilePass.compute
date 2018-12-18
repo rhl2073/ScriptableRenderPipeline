@@ -128,17 +128,17 @@ void TileNeighbourhood(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex,
 {
     // Sample the 1-ring neighbourhood of tile texture
     float3 centralSample = _TileMinMaxVel[id.xy + uint2( 0,  0)].xyz;
-    float2 v0       = _TileMinMaxVel[id.xy + uint2(-1,  1)].xy;
-    float2 v1       = _TileMinMaxVel[id.xy + uint2( 0,  1)].xy;
-    float2 v2       = _TileMinMaxVel[id.xy + uint2( 1,  1)].xy;
+    float2 v0       = _TileMinMaxVel[id.xy + int2(-1,  1)].xy;
+    float2 v1       = _TileMinMaxVel[id.xy + int2( 0,  1)].xy;
+    float2 v2       = _TileMinMaxVel[id.xy + int2( 1,  1)].xy;
 
-    float2 v3       = _TileMinMaxVel[id.xy + uint2(-1,  0)].xy;
+    float2 v3       = _TileMinMaxVel[id.xy + int2(-1,  0)].xy;
     float2 v4       = centralSample.xy;
-    float2 v5       = _TileMinMaxVel[id.xy + uint2( 1,  0)].xy;
+    float2 v5       = _TileMinMaxVel[id.xy + int2( 1,  0)].xy;
 
-    float2 v6       = _TileMinMaxVel[id.xy + uint2(-1, -1)].xy;
-    float2 v7       = _TileMinMaxVel[id.xy + uint2( 0, -1)].xy;
-    float2 v8       = _TileMinMaxVel[id.xy + uint2( 1, -1)].xy;
+    float2 v6       = _TileMinMaxVel[id.xy + int2(-1, -1)].xy;
+    float2 v7       = _TileMinMaxVel[id.xy + int2( 0, -1)].xy;
+    float2 v8       = _TileMinMaxVel[id.xy + int2( 1, -1)].xy;
 
     // TODO_FCC Can we use Max3 somehow? 
     float2 maxVel0 = MaxVel(v0, MaxVel(v1, v2));

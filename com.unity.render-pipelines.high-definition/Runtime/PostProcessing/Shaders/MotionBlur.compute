@@ -21,7 +21,7 @@ Texture2D _InputTexture;
 #define MAX_VELOCITY 3
 #define CUSTOM 4
 
-#define DEBUG_VIEW TILE_VIS
+#define DEBUG_VIEW NO_DEBUG
 
 
 // ------------Debug Weight------------------
@@ -120,14 +120,15 @@ void MirrorWeights(float depth1, float depth2, float vel1, float vel2, inout flo
 // Sample processing 
 // ---------------------------------------------
 
-float3 ProcessSampleFastPath(uint sampleNumber, float2 dir, float invSampleCount, float2 centralUV, float randomVal)
+float3 ProcessSampleFastPath(uint sampleNumber, float2 dir, float invSampleCount, float2 centralUV, float randomVal, float dirSign)
 {
-    float  dirSign = sampleNumber % 2 == 0 ? 1.0f : -1.0f;                         // TODO_FCC: Verify this gets translated to sensible disasm 
     float2 currDir = dirSign * dir;
 
     float  offsetLength = (sampleNumber + 0.5f) + (dirSign * (randomVal - 0.5));
-    float2 sampleUV = centralUV + (offsetLength * invSampleCount) * currDir;
-    float3 sampleColor = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).xyz;
+    float2 sampleUV = centralUV + (offsetLength*invSampleCount) * currDir;
+
+    float3 sampleColor    = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).xyz;
+
     return sampleColor;
 }
 
@@ -181,7 +182,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     bool fastPath = minVelLengthInPixels > (_MinMaxVelRatioForSlowPath * maxVelLength);
 #endif
 
-    fastPath = fastPath && !(DEBUG_EXECUTION == ONLY_SLOW_PATH);
+    fastPath = (fastPath && !(DEBUG_EXECUTION == ONLY_SLOW_PATH));
 
 #if DEBUG_VIEW == TILE_VIS
     if (earlyOut)
@@ -217,12 +218,12 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 colorAccumulation = 0.0f;
 
     // Note: anything marked fw_ refer to the forward sample, anything bw_ refers to the backward sample. 
-    // TODO_FCC: Make some functions to reduce code redundancy. 
-    if ( (fastPath && !(DEBUG_EXECUTION == ONLY_SLOW_PATH)))
+    if (fastPath)
     {
-        for (int i = 0; i < _SampleCount; ++i)
+        for (int i = 0; i < _SampleCount / 2; ++i)
         {
-            colorAccumulation += ProcessSampleFastPath(i, dir, invSampleCount, centerSampleUV, randomVal);
+            colorAccumulation += ProcessSampleFastPath(i, dir, invSampleCount, centerSampleUV, randomVal, -1);
+            colorAccumulation += ProcessSampleFastPath(i, dir, invSampleCount, centerSampleUV, randomVal, 1);
         }
 
         colorAccumulation *= invSampleCount;
