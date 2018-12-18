@@ -65,6 +65,8 @@ float2 EncodeVelocity(float2 velocity)
 #else
 
     float len = length(velocity);
+
+    // TODO_FCC: PASS THIS 64 AS PARAM
     if(len > 0)
     {
         return min(len, _MotionBlurMaxVelocity / _ScreenMagnitude) * normalize(velocity);

@@ -31,7 +31,7 @@ groupshared float2 gs_maxVel[((TILE_SIZE * TILE_SIZE))];
 #endif
 
 // TODO_FCC: Do dispatch indirect for the fast pass. 
-// TODO_FCC: Optimize to avoid computing length for each sample.
+
 #ifdef GEN_PASS 
 [numthreads(TILE_SIZE, TILE_SIZE,1)]
 void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID: SV_GroupID)
@@ -123,10 +123,14 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 
 #elif NEIGHBOURHOOD_PASS 
 
+#define MCGUIRE2013 0
+
 [numthreads(8, 8, 1)]
 void TileNeighbourhood(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
-    // We follow mcguire 2013 here, when computing dominant direction we ignore velocities that
+
+#if MCGUIRE2013 
+        // We follow mcguire 2013 here, when computing dominant direction we ignore velocities that
     // are completely off the path of the central one. 
     // We still compute the min velocity in a 1-ring neighbourhood
 
@@ -174,6 +178,33 @@ void TileNeighbourhood(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex,
     float minVel2 = Min3(minVels[6], minVels[7], minVels[8]);
 
     _TileMaxNeighbourhood[id.xy] = float4(maxVel, Min3(minVel0, minVel1, minVel2), 0) ;
+#else
+    // Sample the 1-ring neighbourhood of tile texture
+    float3 centralSample = _TileMinMaxVel[id.xy + uint2( 0,  0)].xyz;
+    float3 v0       = _TileMinMaxVel[id.xy + int2(-1,  1)].xyz;
+    float3 v1       = _TileMinMaxVel[id.xy + int2( 0,  1)].xyz;
+    float3 v2       = _TileMinMaxVel[id.xy + int2( 1,  1)].xyz;
+
+    float3 v3       = _TileMinMaxVel[id.xy + int2(-1,  0)].xyz;
+    float3 v4       = centralSample.xyz;
+    float3 v5       = _TileMinMaxVel[id.xy + int2( 1,  0)].xyz;
+
+    float3 v6       = _TileMinMaxVel[id.xy + int2(-1, -1)].xyz;
+    float3 v7       = _TileMinMaxVel[id.xy + int2( 0, -1)].xyz;
+    float3 v8       = _TileMinMaxVel[id.xy + int2( 1, -1)].xyz;
+
+    // TODO_FCC Can we use Max3 somehow? 
+    float2 maxVel0 = MaxVel(v0, MaxVel(v1, v2));
+    float2 maxVel1 = MaxVel(v3, MaxVel(v4, v5));
+    float2 maxVel2 = MaxVel(v6, MaxVel(v7, v8));
+
+    float minVel0 = Min3(v0.z, v1.z, v2.z);
+    float minVel1 = Min3(v3.z, v4.z, v5.z);
+    float minVel2 = Min3(v6.z, v7.z, v8.z);
+
+
+    _TileMaxNeighbourhood[id.xy] = float4(MaxVel(maxVel0, MaxVel(maxVel1, maxVel2)), Min3(minVel0, minVel1, minVel2), 0) ;
+#endif
 }
 
 #endif

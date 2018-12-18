@@ -21,7 +21,7 @@ Texture2D _InputTexture;
 #define MAX_VELOCITY 3
 #define CUSTOM 4
 
-#define DEBUG_VIEW NO_DEBUG
+#define DEBUG_VIEW TILE_VIS
 
 
 // ------------Debug Weight------------------
