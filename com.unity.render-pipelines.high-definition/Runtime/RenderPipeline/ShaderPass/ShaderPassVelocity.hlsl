@@ -173,6 +173,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
+
 void Frag(  PackedVaryingsToPS packedInput
             // The velocity if always the first buffer
             , out float4 outVelocity : SV_Target0
@@ -223,8 +224,10 @@ void Frag(  PackedVaryingsToPS packedInput
 
     // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
+    // If forceNoMotion, we output an implausible velocity (>1) that will be taken care of at decoding time.
+    // This is to explicitly flag this case for cases in which we manually recompute camera velocity (e.g. Motion Blur)
     if (forceNoMotion)
-        outVelocity = float4(0.0, 0.0, 0.0, 0.0);
+        outVelocity = float4(2.0, 2.0, 0.0, 0.0);
 
 // Normal Buffer Processing
 #ifdef WRITE_NORMAL_BUFFER
