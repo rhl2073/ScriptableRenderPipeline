@@ -33,6 +33,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         //    set { m_ResizeBorderFrame.OnResizeFinished = value; }
         //}
 
+        [NonSerialized]
+        Dictionary<IShaderProperty, bool> m_ExpandedProperties = new Dictionary<IShaderProperty, bool>();
+
+        public Dictionary<IShaderProperty, bool> expandedProperties
+        {
+            get { return m_ExpandedProperties; }
+        }
+
         public string assetName
         {
             get { return blackboard.title; }
@@ -217,7 +225,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var property in m_Graph.addedProperties)
                 AddProperty(property, index: m_Graph.GetShaderPropertyIndex(property));
 
-            foreach (var propertyDict in m_Graph.expandedProperties)
+            foreach (var propertyDict in expandedProperties)
             {
                 SessionState.SetBool(propertyDict.Key.guid.ToString(), propertyDict.Value);
             }
@@ -230,6 +238,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var property in m_Graph.properties)
                     m_Section.Add(m_PropertyRows[property.guid]);
             }
+            m_ExpandedProperties.Clear();
         }
 
         void AddProperty(IShaderProperty property, bool create = false, int index = -1)
@@ -277,7 +286,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnExpanded(MouseDownEvent evt, IShaderProperty property)
         {
-            m_Graph.ShaderPropertyExpandedState(property, !m_PropertyRows[property.guid].expanded);
+            m_ExpandedProperties[property] = !m_PropertyRows[property.guid].expanded;
         }
 
         void DirtyNodes()
