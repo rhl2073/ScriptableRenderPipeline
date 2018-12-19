@@ -21,7 +21,7 @@ Texture2D _InputTexture;
 #define MAX_VELOCITY 3
 #define CUSTOM 4
 
-#define DEBUG_VIEW TILE_VIS
+#define DEBUG_VIEW NO_DEBUG
 
 
 // ------------Debug Weight------------------
@@ -36,6 +36,7 @@ Texture2D _InputTexture;
 // ------------Debug Execution ------------------
 #define NORMAL 0
 #define ONLY_SLOW_PATH 1
+#define ONLY_FAST_PATH 2
 
 #define DEBUG_EXECUTION NORMAL
 
@@ -173,7 +174,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float maxVelLength = VelocityLengthInPixelsFromEncoded(tileMaxNeighbourhood.xy);
     float minVelLengthInPixels =  tileMaxNeighbourhood.z * _ScreenMagnitude;
 
-    bool earlyOut = maxVelLength <= _MinVelThreshold && !(DEBUG_EXECUTION == ONLY_SLOW_PATH);
+    bool earlyOut = maxVelLength <= _MinVelThreshold;
 
 #if defined(SUPPORTS_WAVE_INTRINSICS)
     bool fastPath = WaveActiveAllTrue(minVelLengthInPixels > (_MinMaxVelRatioForSlowPath * maxVelLength));
@@ -182,7 +183,13 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     bool fastPath = minVelLengthInPixels > (_MinMaxVelRatioForSlowPath * maxVelLength);
 #endif
 
-    fastPath = (fastPath && !(DEBUG_EXECUTION == ONLY_SLOW_PATH));
+#if DEBUG_EXECUTION == ONLY_SLOW_PATH
+    earlyOut = false;
+    fastPath = false;
+#elif DEBUG_EXECUTION == ONLY_FAST_PATH
+    earlyOut = false;
+    fastPath = true;
+#endif
 
 #if DEBUG_VIEW == TILE_VIS
     if (earlyOut)
