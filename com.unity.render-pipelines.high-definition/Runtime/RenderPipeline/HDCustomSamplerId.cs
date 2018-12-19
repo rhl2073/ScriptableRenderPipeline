@@ -53,6 +53,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         CullResultsCull,
         CopyDepth,
         UpdateStencilCopyForSSRExclusion,
+        UpdateStencilCopyForObjectVelocity,
         GizmosPrePostprocess,
         Gizmos,
 
