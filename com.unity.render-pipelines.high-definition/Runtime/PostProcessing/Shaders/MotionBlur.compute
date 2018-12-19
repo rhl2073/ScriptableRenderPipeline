@@ -38,7 +38,7 @@ Texture2D _InputTexture;
 #define ONLY_SLOW_PATH 1
 #define ONLY_FAST_PATH 2
 
-#define DEBUG_EXECUTION ONLY_SLOW_PATH
+#define DEBUG_EXECUTION NORMAL
 
 
 // ------------Debug Misc------------------
