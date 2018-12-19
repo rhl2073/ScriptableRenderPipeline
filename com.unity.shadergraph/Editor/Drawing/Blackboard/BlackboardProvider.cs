@@ -33,7 +33,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         //    set { m_ResizeBorderFrame.OnResizeFinished = value; }
         //}
 
-        [NonSerialized]
         Dictionary<IShaderProperty, bool> m_ExpandedProperties = new Dictionary<IShaderProperty, bool>();
 
         public Dictionary<IShaderProperty, bool> expandedProperties
@@ -266,14 +265,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Section.Insert(index, row);
             m_PropertyRows[property.guid] = row;
 
-            try
-            {
-                m_PropertyRows[property.guid].expanded = SessionState.GetBool(property.guid.ToString(), false);
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
+            m_PropertyRows[property.guid].expanded = SessionState.GetBool(property.guid.ToString(), false);
 
             if (create)
             {
