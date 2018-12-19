@@ -38,9 +38,14 @@ Texture2D _InputTexture;
 #define ONLY_SLOW_PATH 1
 #define ONLY_FAST_PATH 2
 
-#define DEBUG_EXECUTION NORMAL
+#define DEBUG_EXECUTION ONLY_SLOW_PATH
 
+
+// ------------Debug Misc------------------
 #define MIRROR_WEIGHTS 0        // TODO_FCC: To test with noisy background.
+#define TILE_JITTER 1
+#define GUERTIN2014_DOUBLE_DIR 1
+#define DEBUG_CENTRAL_VEL 1
 
 // ---------------------------------------------
 // Misc utils
@@ -52,7 +57,7 @@ Texture2D _InputTexture;
 float RandomValue(uint2 pixCoord, uint frameCount)
 {
 #if DITHER_SCHEME == INTERLEAVED_GRADIENT_NOISE
-    return InterleavedGradientNoise(pixCoord.xy, frameCount);
+    return InterleavedGradientNoise(pixCoord.xy, 0);
 #elif DITHER_SCHEME == CHECKERBOARD
     float scale = 0.25f;
     float2 posMod = float2 (pixCoord & 1);
@@ -61,9 +66,9 @@ float RandomValue(uint2 pixCoord, uint frameCount)
     return 0.0f;
 }
 
-#define TILE_JITTER_MAGNITUDE 0.25
 
 // Maybe reuse the random outside. TODO_FCC: Check this.
+// TODO_FCC: Get better jitter. 
 float2 GetTileUV(uint2 pixCoord)
 {
     // TODO_FCC: Animate the jitter? 
@@ -71,6 +76,9 @@ float2 GetTileUV(uint2 pixCoord)
     randomVals -= 0.5f;
     randomVals *= 0.5f;
 
+#if !TILE_JITTER
+    randomVals = 0;
+#endif
     return ((pixCoord / TILE_SIZE) + randomVals) * _TileTargetSize.zw;
 }
 
@@ -246,11 +254,18 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         float3 velocityAndDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, centerSampleUV, 0).xyz;
         float2 centralTapVelocity = DecodeVelocityFromPacked(velocityAndDepth.xy);
         float  centralVelocityLen = VelocityLengthInPixelsFromEncoded(velocityAndDepth.xy);
+#if GUERTIN2014_DOUBLE_DIR
+        float2 centralDir = centralVelocityLen < 1 ? dir : centralTapVelocity * 0.5f;
+#endif
+
         float  centralDepth = velocityAndDepth.z;
 
         float4 accumulation = 0.0f;
         for (int i = 0; i < _SampleCount / 2; ++i)
         {
+#if GUERTIN2014_DOUBLE_DIR
+            dir = i % 2 == 0 ? centralDir : dir;
+#endif
             float fw_Depth, bw_Depth;
             float fw_VelLength, bw_VelLength;
             float4 fw_Sample = ProcessSample(i, dir, invSampleCount, centerSampleUV, centralDepth, centralVelocityLen, pixelToSampleScale, randomVal, 1, fw_Depth, fw_VelLength);
