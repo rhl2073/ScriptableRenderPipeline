@@ -12,7 +12,7 @@
 
 #define GENERATE_INTRINSIC_INT24_VARIANTS_3_ARGS(FunctionName, BaseIntrinsicName, Parameter0, Parameter1, Parameter2) \
     int   FunctionName(int   Parameter0, int   Parameter1, int   Parameter2) { return BaseIntrinsicName##I24(Parameter0, Parameter1, Parameter2); } \
-    uint  FunctionName(uint  Parameter0, uint  Parameter1, uint  Parameter2) { return BaseIntrinsicName##U24(Parameter0, Parameter1, Parameter2); }
+    uint  FunctionName(uint  Parameter0, uint  Parameter1, uint  Parameter2) { return BaseIntrinsicName##U24(Parameter0, Parameter1, Parameter2); } 
 
 
 #define UNITY_UV_STARTS_AT_TOP 1
@@ -45,6 +45,7 @@
 #define WaveActiveBitAnd __XB_WaveAND
 #define WaveActiveBitOr __XB_WaveOR
 #define WaveGetLaneCount() (64)
+#define WaveGetID __XB_GetWaveID
 
 #define INTRINSIC_BITFIELD_EXTRACT
 uint BitFieldExtract(uint data, uint offset, uint numBits)
@@ -69,6 +70,15 @@ bool WaveActiveAnyTrue(bool expression)
     return (__XB_S_BCNT1_U64(WaveActiveBallot(expression))) != 0;
 }
 
+uint WaveGetLaneIndex()
+{
+    return __XB_GetLaneID();
+}
+
+bool WaveIsFirstLane()
+{
+    return (__XB_MBCNT64(WaveActiveBallot(true))) == 0;
+}
 
 #define INTRINSIC_MINMAX3
 GENERATE_INTRINSIC_VARIANTS_3_ARGS(Min3, __XB_Min3_, a, b, c);
