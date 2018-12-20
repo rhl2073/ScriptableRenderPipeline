@@ -11,11 +11,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         VolumeProfile m_Profile;
         [SerializeField, FormerlySerializedAs("m_BakingSkyUniqueID")]
         int m_StaticLightingSkyUniqueID = 0;
-        [SerializeField]
-        SphericalHarmonicsL2 m_AmbientProbe;
 
         public SkySettings skySettings { get; private set; }
-        public SphericalHarmonicsL2 ambientProbe { get { return m_AmbientProbe; } set { m_AmbientProbe = value; } }
 
         List<SkySettings> m_VolumeSkyList = new List<SkySettings>();
 
