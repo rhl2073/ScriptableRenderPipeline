@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed logic to disable FPTL with stereo rendering
 - Fixed stacklit transmission and sun highlight
 - Fixed decals with stereo rendering
+- Fixed sky with stereo rendering
 - Fixed flip logic for postprocessing + VR
 - Fixed copyStencilBuffer pass for Switch
 - Fixed point light shadow map culling that wasn't taking into account far plane
@@ -46,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shutdown edge cases with HDRP tests
 - Fixed slowdow when enabling Fabric convolution in HDRP asset
 - Fixed specularAA not compiling in StackLit Master node
+- Fixed material debug view with stereo rendering
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
