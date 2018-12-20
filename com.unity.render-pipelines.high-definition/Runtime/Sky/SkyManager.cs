@@ -463,6 +463,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
         void OnBakeStarted()
         {
+            var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (hdrp == null)
+                return;
+
+            // Happens sometime in the tests.
+            if (m_StandardSkyboxMaterial == null)
+                m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(hdrp.asset.renderPipelineResources.shaders.skyboxCubemapPS);
+
             // At the start of baking we need to update the GI system with the static lighting sky in order for lightmaps and probes to be baked with it.
             var staticLightingSky = GetStaticLightingSky();
             if (staticLightingSky != null)
