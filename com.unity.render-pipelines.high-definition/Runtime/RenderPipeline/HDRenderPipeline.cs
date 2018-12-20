@@ -220,6 +220,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ScriptableCullingParameters frozenCullingParams;
         bool frozenCullingParamAvailable = false;
 
+        public bool showCascade
+        {
+            get => m_DebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.VisualizeCascade;
+            set
+            {
+                if (value)
+                    m_DebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.VisualizeCascade);
+                else
+                    m_DebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.None);
+            }
+        }
+
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
             m_Asset = asset;
@@ -460,7 +472,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 rendererPriority = true,
                 overridesEnvironmentLighting = true,
                 overridesFog = true,
-                overridesOtherLightingSettings = true
+                overridesOtherLightingSettings = true,
+                editableMaterialRenderQueue = false
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -878,7 +891,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var cmd = CommandBufferPool.Get("");
 
                 // Specific pass to simply display the content of the camera buffer if users have fill it themselves (like video player)
-                if (additionalCameraData && additionalCameraData.renderingPath == HDAdditionalCameraData.RenderingPath.FullscreenPassthrough)
+                if (additionalCameraData && additionalCameraData.fullscreenPassthrough)
                 {
                     renderContext.ExecuteCommandBuffer(cmd);
                     CommandBufferPool.Release(cmd);
@@ -1058,7 +1071,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // TODO: Find a correct place to bind these material textures
                     // We have to bind the material specific global parameters in this mode
-                    m_MaterialList.ForEach(material => material.Bind());
+                    m_MaterialList.ForEach(material => material.Bind(cmd));
 
                     // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
                     DensityVolumeList densityVolumes = m_VolumetricLightingSystem.PrepareVisibleDensityVolumeList(hdCamera, cmd, m_Time);
@@ -1153,7 +1166,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled())
                     {
+                        StartStereoRendering(cmd, renderContext, camera);
                         RenderDebugViewMaterial(cullingResults, hdCamera, renderContext, cmd);
+                        StopStereoRendering(cmd, renderContext, camera);
 
                         PushColorPickerDebugTexture(cmd, m_CameraColorBuffer, hdCamera);
                     }
@@ -1444,20 +1459,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             using (new ProfilingSample(cmd, "Blit to final RT", CustomSamplerId.BlitToFinalRT.GetSampler()))
                             {
-                                // This Blit will flip the screen on anything other than openGL
                                 if (camera.stereoEnabled && (XRGraphics.eyeTextureDesc.dimension == TextureDimension.Tex2D))
                                 {
-#if UNITY_2019_1_OR_NEWER
-                                    Material finalDoubleWideBlit = GetBlitMaterial();
-                                    finalDoubleWideBlit.SetTexture(HDShaderIDs._BlitTexture, m_CameraColorBuffer);
-                                    finalDoubleWideBlit.SetFloat(HDShaderIDs._BlitMipLevel, 0.0f);
-                                    finalDoubleWideBlit.SetVector(HDShaderIDs._BlitScaleBiasRt, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-                                    finalDoubleWideBlit.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-                                    int pass = 1; // triangle, bilinear (from Blit.shader)
-                                    cmd.Blit(m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget, finalDoubleWideBlit, pass);
-#else
-                                    cmd.BlitFullscreenTriangle(m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget); // Prior to 2019.1's y-flip fixes, we didn't need a flip in the shader
-#endif
+                                    HDUtils.BlitCameraTextureStereoDoubleWide(cmd, m_CameraColorBuffer);
                                 }
                                 else
                                 {
@@ -1467,10 +1471,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
 
                         StopStereoRendering(cmd, renderContext, camera);
-                        // Pushes to XR headset and/or display mirror
-                        if (camera.stereoEnabled)
-                            renderContext.StereoEndRender(camera);
                     }
+
+                    // Pushes to XR headset and/or display mirror
+                    if (camera.stereoEnabled)
+                        renderContext.StereoEndRender(camera);
 
                     // Due to our RT handle system we don't write into the backbuffer depth buffer (as our depth buffer can be bigger than the one provided)
                     // So need to do a copy of the corresponding part of RT depth buffer in the target depth buffer in various situation:
@@ -1906,8 +1911,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 using (new ProfilingSample(cmd, "Blit DebugView Material Debug", CustomSamplerId.BlitDebugViewMaterialDebug.GetSampler()))
                 {
-                    // This Blit will flip the screen anything other than openGL
-                    HDUtils.BlitCameraTexture(cmd, hdCamera, m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget);
+                    if (hdCamera.camera.stereoEnabled && (XRGraphics.eyeTextureDesc.dimension == TextureDimension.Tex2D))
+                    {
+                        HDUtils.BlitCameraTextureStereoDoubleWide(cmd, m_CameraColorBuffer);
+                    }
+                    else
+                    {
+                        // This Blit will flip the screen anything other than openGL
+                        HDUtils.BlitCameraTexture(cmd, hdCamera, m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget);
+                    }
                 }
             }
         }
@@ -2119,7 +2131,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void RenderForwardError(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            using (new ProfilingSample(cmd, "Render Forward Error", CustomSamplerId.RenderForwardError.GetSampler()))
+            using (new ProfilingSample(cmd, "Forward Error", CustomSamplerId.RenderForwardError.GetSampler()))
             {
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
                 RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, m_ForwardErrorPassNames, 0, RenderQueueRange.all, null, m_ErrorMaterial);
@@ -2144,7 +2156,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!hdCamera.frameSettings.enableTransparentPostpass)
                 return;
 
-            using (new ProfilingSample(cmd, "Render Transparent Depth Post ", CustomSamplerId.TransparentDepthPostpass.GetSampler()))
+            using (new ProfilingSample(cmd, "Transparent Depth Post ", CustomSamplerId.TransparentDepthPostpass.GetSampler()))
             {
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
                 RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_TransparentDepthPostpassNames);
@@ -2510,7 +2522,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (hdCamera.camera.cameraType == CameraType.Reflection || hdCamera.camera.cameraType == CameraType.Preview)
                 return;
 
-            using (new ProfilingSample(cmd, "Render Debug", CustomSamplerId.RenderDebug.GetSampler()))
+            using (new ProfilingSample(cmd, "Debug", CustomSamplerId.RenderDebug.GetSampler()))
             {
                 // First render full screen debug texture
                 if (NeedsFullScreenDebugMode() && m_FullScreenDebugPushed)
