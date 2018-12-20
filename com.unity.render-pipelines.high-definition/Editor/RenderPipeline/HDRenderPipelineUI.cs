@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent diffusionProfileSettingsContent = CoreEditorUtils.GetContent("Diffusion Profile List");
         //static readonly GUIContent enableShaderVariantStrippingContent = CoreEditorUtils.GetContent("Shader Variant Stripping");
         static readonly GUIContent enableSRPBatcher = CoreEditorUtils.GetContent("SRP Batcher (experimental)");
-        static readonly GUIContent enableVariantStrippingLog = CoreEditorUtils.GetContent("Variant stripping logging");
+        static readonly GUIContent enableVariantStrippingLog = CoreEditorUtils.GetContent("Shader Variant Log");
 
         internal enum SelectedFrameSettings { Camera, BakedOrCustomReflection, RealtimeReflection };
         internal static SelectedFrameSettings selectedFrameSettings = SelectedFrameSettings.Camera;
