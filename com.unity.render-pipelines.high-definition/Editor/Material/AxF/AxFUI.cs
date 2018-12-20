@@ -428,7 +428,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     --EditorGUI.indentLevel;
                     break;
                 }
-            }            
+            }
         }
 
         protected override void MaterialPropertiesAdvanceGUI(Material _material)
