@@ -38,9 +38,10 @@ float2 ComputeVelocity(PositionInputs posInput, uint2 dispatchThreadId)
     DecodeVelocity(LOAD_TEXTURE2D(_CameraMotionVectorsTexture, dispatchThreadId.xy), velocity);
 
     // Encode should be clamp here.
-    float2 clampVelRot =  float2(clamp(velCameraRot.x, -0.15, 0.15), clamp(velCameraRot.y, -0.25f, 0.25f));// min(0.33, length(velCameraRot)) * normalize(velCameraRot);
+   
+    float2 clampVelRot =  float2(clamp(velCameraRot.x * _MotionBlurIntensity, -0.15, 0.15), clamp(velCameraRot.y * _MotionBlurIntensity, -0.25f, 0.25f));// min(0.33, length(velCameraRot)) * normalize(velCameraRot);
 
-    velocity = EncodeVelocity(velocity - velCameraRot) + clampVelRot;
+    velocity = EncodeVelocity((velocity - velCameraRot) * _MotionBlurIntensity) + clampVelRot;
 
     return velocity;
 

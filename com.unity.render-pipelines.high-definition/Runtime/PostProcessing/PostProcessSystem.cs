@@ -1201,7 +1201,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int threadGroupX = (camera.actualWidth + 7) / 8;
             int threadGroupY = (camera.actualHeight + 7) / 8;
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurMaxVelocity, motionBlurParams0);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
+            cmd.SetComputeFloatParam(cs, HDShaderIDs._MotionBlurIntensity, m_MotionBlur.intensity);
             cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.prevViewProjMatrixNoCameraTrans);
 
             cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
@@ -1214,7 +1215,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             kernel = cs.FindKernel("TileGenPass");
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurMaxVelocity, motionBlurParams0);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
             threadGroupX = (camera.actualWidth + (tileSize-1)) / tileSize;
             threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize;
             cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
@@ -1238,7 +1239,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurMaxVelocity, motionBlurParams0);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
             cmd.SetComputeIntParam(cs, HDShaderIDs._MotionBlurSampleCount, m_MotionBlur.sampleCount);
 
             threadGroupX = (camera.actualWidth + 7) / 8;

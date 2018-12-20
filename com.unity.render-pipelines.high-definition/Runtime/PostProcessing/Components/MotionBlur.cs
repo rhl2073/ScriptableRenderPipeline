@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
         // Physical settings
-        public MinFloatParameter intensity = new MinFloatParameter(20.0f, 0.0f);
+        public MinFloatParameter intensity = new MinFloatParameter(1.0f, 0.0f);
         private MinIntParameter tileSize = new MinIntParameter(16, 1);
 
         public MinFloatParameter maxVelocity = new MinFloatParameter(64.0f, 1.0f);

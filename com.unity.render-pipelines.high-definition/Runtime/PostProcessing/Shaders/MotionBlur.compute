@@ -42,10 +42,9 @@ Texture2D _InputTexture;
 
 
 // ------------Debug Misc------------------
-#define MIRROR_WEIGHTS 0        // TODO_FCC: To test with noisy background.
+#define MIRROR_WEIGHTS 1        // TODO_FCC: To test with noisy background.
 #define TILE_JITTER 1
 #define GUERTIN2014_DOUBLE_DIR 1
-#define DEBUG_CENTRAL_VEL 1
 
 // ---------------------------------------------
 // Misc utils
@@ -220,83 +219,88 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 outVal = 1;
     if (earlyOut)
     {
-        outVal = centralColor;
-    }
-
-    const float invSampleCount = 1.0f / _SampleCount;
-
-    float2 centerSampleUV = (0.5f + dispatchThreadId.xy) * _ScreenSize.zw;
-
-    float randomVal = RandomValue(dispatchThreadId.xy, 0);     // TODO_FCC: Animate
-    float2 dir = 0.5f * maxVel;
-
-    float3 colorAccumulation = 0.0f;
-
-    // Note: anything marked fw_ refer to the forward sample, anything bw_ refers to the backward sample. 
-    if (fastPath)
-    {
-        for (int i = 0; i < _SampleCount / 2; ++i)
-        {
-            colorAccumulation += ProcessSampleFastPath(i, dir, invSampleCount, centerSampleUV, randomVal, -1);
-            colorAccumulation += ProcessSampleFastPath(i, dir, invSampleCount, centerSampleUV, randomVal, 1);
-        }
-
-        colorAccumulation *= invSampleCount;
-#if DEBUG_VIEW == WEIGHT_VIS
-        colorAccumulation = 0;
-#endif
+        _OutputTexture[dispatchThreadId.xy] = centralColor;
     }
     else
     {
-        // Slow path.
-        float pixelToSampleScale = _SampleCount * 0.5f * maxVelLength;
+        const float invSampleCount = 1.0f / _SampleCount;
 
-        float3 velocityAndDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, centerSampleUV, 0).xyz;
-        float2 centralTapVelocity = DecodeVelocityFromPacked(velocityAndDepth.xy);
-        float  centralVelocityLen = VelocityLengthInPixelsFromEncoded(velocityAndDepth.xy);
-#if GUERTIN2014_DOUBLE_DIR
-        float2 centralDir = centralVelocityLen < 1 ? dir : centralTapVelocity * 0.5f;
-#endif
+        float2 centerSampleUV = (0.5f + dispatchThreadId.xy) * _ScreenSize.zw;
 
-        float  centralDepth = velocityAndDepth.z;
+        float randomVal = RandomValue(dispatchThreadId.xy, 0);     // TODO_FCC: Animate
+        float2 dir = 0.5f * maxVel;
 
-        float4 accumulation = 0.0f;
-        for (int i = 0; i < _SampleCount / 2; ++i)
+        float3 colorAccumulation = 0.0f;
+
+        // Note: anything marked fw_ refer to the forward sample, anything bw_ refers to the backward sample. 
+        if (fastPath)
         {
-#if GUERTIN2014_DOUBLE_DIR
-            dir = i % 2 == 0 ? centralDir : dir;
-#endif
-            float fw_Depth, bw_Depth;
-            float fw_VelLength, bw_VelLength;
-            float4 fw_Sample = ProcessSample(i, dir, invSampleCount, centerSampleUV, centralDepth, centralVelocityLen, pixelToSampleScale, randomVal, 1, fw_Depth, fw_VelLength);
-            float4 bw_Sample = ProcessSample(i, dir, invSampleCount, centerSampleUV, centralDepth, centralVelocityLen, pixelToSampleScale, randomVal, -1, bw_Depth, bw_VelLength);
+            for (int i = 0; i < _SampleCount / 2; ++i)
+            {
+                colorAccumulation += ProcessSampleFastPath(i, dir, invSampleCount, centerSampleUV, randomVal, -1);
+                colorAccumulation += ProcessSampleFastPath(i, dir, invSampleCount, centerSampleUV, randomVal, 1);
+            }
 
-            // Mirror weights
-#if MIRROR_WEIGHTS
-            MirrorWeights(fw_Depth, bw_Depth, fw_VelLength, bw_VelLength, fw_Sample.w, bw_Sample.w);
+            colorAccumulation *= invSampleCount;
+#if DEBUG_VIEW == WEIGHT_VIS
+            colorAccumulation = 0;
 #endif
-            accumulation += float4(fw_Sample.w * fw_Sample.rgb, fw_Sample.w) + float4(bw_Sample.w * bw_Sample.rgb, bw_Sample.w);
         }
-        accumulation *= invSampleCount;
+        else
+        {
+            // Slow path.
+            float pixelToSampleScale = _SampleCount * 0.5f * maxVelLength;
 
-        colorAccumulation = accumulation + (1.0f - accumulation.w) * centralColor;
+            float3 velocityAndDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, centerSampleUV, 0).xyz;
+            float2 centralTapVelocity = DecodeVelocityFromPacked(velocityAndDepth.xy);
+            float  centralVelocityLen = VelocityLengthInPixelsFromEncoded(velocityAndDepth.xy);
+#if GUERTIN2014_DOUBLE_DIR
+            float2 centralDir = centralVelocityLen < 1 ? dir : centralTapVelocity * 0.5f;
+#endif
+
+            float  centralDepth = velocityAndDepth.z;
+
+            float4 accumulation = 0.0f;
+            for (int i = 0; i < _SampleCount / 2; ++i)
+            {
+#if GUERTIN2014_DOUBLE_DIR
+                dir = i % 2 == 0 ? centralDir : dir;
+#endif
+                float fw_Depth, bw_Depth;
+                float fw_VelLength, bw_VelLength;
+                float4 fw_Sample = ProcessSample(i, dir, invSampleCount, centerSampleUV, centralDepth, centralVelocityLen, pixelToSampleScale, randomVal, 1, fw_Depth, fw_VelLength);
+                float4 bw_Sample = ProcessSample(i, dir, invSampleCount, centerSampleUV, centralDepth, centralVelocityLen, pixelToSampleScale, randomVal, -1, bw_Depth, bw_VelLength);
+
+                // Mirror weights
+#if MIRROR_WEIGHTS
+                MirrorWeights(fw_Depth, bw_Depth, fw_VelLength, bw_VelLength, fw_Sample.w, bw_Sample.w);
+#endif
+                accumulation += float4(fw_Sample.w * fw_Sample.rgb, fw_Sample.w) + float4(bw_Sample.w * bw_Sample.rgb, bw_Sample.w);
+            }
+            accumulation *= invSampleCount;
+
+            colorAccumulation = accumulation + (1.0f - accumulation.w) * centralColor;
 
 #if DEBUG_VIEW == WEIGHT_VIS
-        colorAccumulation = accumulation.w;
+            colorAccumulation = accumulation.w;
 #endif
-    }
+        }
 
 
 #if DEBUG_VIEW == MAX_VELOCITY
-    colorAccumulation = float3(maxVel, 0.0f);
-    float maxVelLenPix = VelocityLengthInPixelsFromEncoded(tileMaxNeighbourhood.xy);
-    colorAccumulation = maxVelLenPix;
+        colorAccumulation = float3(maxVel, 0.0f);
+        float maxVelLenPix = VelocityLengthInPixelsFromEncoded(tileMaxNeighbourhood.xy);
+        colorAccumulation = maxVelLenPix;
 #endif
 
 #if DEBUG_VIEW == CUSTOM
+
 #endif
 
-    _OutputTexture[dispatchThreadId.xy] = colorAccumulation;
+
+        _OutputTexture[dispatchThreadId.xy] = colorAccumulation;
+    }
+
 
 #endif
 }
