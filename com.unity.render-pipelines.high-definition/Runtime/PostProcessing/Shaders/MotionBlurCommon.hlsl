@@ -25,6 +25,7 @@ Texture2D<float4> _TileMaxNeighbourhood;
 
 
 CBUFFER_START(MotionBlurUniformBuffer)
+float4x4 _PrevVPMatrixNoTranslation;
 float4 _TileTargetSize;     // .xy size, .zw 1/size
 float4 _MotionBlurParams0;  // Unpacked below. 
 int    _SampleCount;

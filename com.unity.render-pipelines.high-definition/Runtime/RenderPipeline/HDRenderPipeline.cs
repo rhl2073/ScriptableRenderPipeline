@@ -1201,7 +1201,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // TODO_FCC: Find better way to detect whether is used or not?
                             var motionBlurSettings = VolumeManager.instance.stack.GetComponent<MotionBlur>();
 
-                            if (motionBlurSettings && motionBlurSettings.intensity > 0.0f)
+                            if (motionBlurSettings && motionBlurSettings.intensity > 0.0f && false /* TODO_FCC: Do we really need this? */)
                             {
                                 using (new ProfilingSample(cmd, "Update stencil copy for Object motion vector", CustomSamplerId.UpdateStencilCopyForObjectVelocity.GetSampler()))
                                 {

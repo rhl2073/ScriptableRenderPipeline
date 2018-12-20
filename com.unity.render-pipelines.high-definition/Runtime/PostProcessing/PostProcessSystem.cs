@@ -1202,6 +1202,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int threadGroupY = (camera.actualHeight + 7) / 8;
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurMaxVelocity, motionBlurParams0);
+            cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.prevViewProjMatrixNoCameraTrans);
 
             cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
 
@@ -1250,7 +1251,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Pool.Recycle(minMaxTileVel);
             m_Pool.Recycle(maxTileNeigbourhood);
             m_Pool.Recycle(preppedVelocity);
-
 
         }
 
