@@ -18,9 +18,9 @@ Texture2D<float3> _TileMinMaxVel;
 #endif
 
 #if NEIGHBOURHOOD_PASS
-RWTexture2D<float4> _TileMaxNeighbourhood;
+RWTexture2D<float3> _TileMaxNeighbourhood;
 #else
-Texture2D<float4> _TileMaxNeighbourhood;
+Texture2D<float3> _TileMaxNeighbourhood;
 #endif
 
 
@@ -41,7 +41,7 @@ CBUFFER_END
 // --------------------------------------
 // Encoding/Decoding
 // --------------------------------------
-#define PACKING 0
+#define PACKING 1
 
 // We use polar coordinates. This has the advantage of storing the length separately and we'll need the length several times.
 // This returns a couple { Length, Angle }
@@ -57,24 +57,33 @@ float2 EncodeVelocity(float2 velocity)
     }
     else
     {
-        /// TODO_FCC: This is to be removed
-        velLength = min(velLength, _ScreenMagnitude * 64);
-        /////
-
-        float theta = atan2(velocity.y, velocity.x) + PI;       // TODO_FCC: Verify if it's beneficial to move the +PI as -PI during decoding.
+        float theta = atan2(velocity.y, velocity.x)  * (0.5 / PI) + 0.5;
         return float2(velLength, theta);
     }
 #else
 
     float len = length(velocity);
 
-    // TODO_FCC: PASS THIS 64 AS PARAM
     if(len > 0)
     {
         return min(len, _MotionBlurMaxVelocity / _ScreenMagnitude) * normalize(velocity);
     }
     else return 0;
 #endif
+}
+
+float2 ClampVelocity(float2 velocity)
+{
+
+    float len = length(velocity);
+    if (len > 0)
+    {
+        return min(len, _MotionBlurMaxVelocity / _ScreenMagnitude) * (velocity * rcp(len));
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 float VelocityLengthFromEncoded(float2 velocity)
@@ -98,8 +107,8 @@ float VelocityLengthInPixelsFromEncoded(float2 velocity)
 float2 DecodeVelocityFromPacked(float2 velocity)
 {
 #if PACKING
-    float theta = velocity.y * (TWO_PI);
-    return  float2(sin(theta), cos(theta)) * velocity.x;
+    float theta = velocity.y * (2 * PI) - PI;
+    return  (float2(sin(theta), cos(theta)) * velocity.x).yx;
 #else
     return velocity;
 #endif

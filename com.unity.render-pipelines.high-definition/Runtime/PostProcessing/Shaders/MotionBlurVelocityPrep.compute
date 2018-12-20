@@ -39,9 +39,9 @@ float2 ComputeVelocity(PositionInputs posInput, uint2 dispatchThreadId)
 
     // Encode should be clamp here.
    
-    float2 clampVelRot =  float2(clamp(velCameraRot.x * _MotionBlurIntensity, -0.15, 0.15), clamp(velCameraRot.y * _MotionBlurIntensity, -0.25f, 0.25f));// min(0.33, length(velCameraRot)) * normalize(velCameraRot);
+    float2 clampVelRot =  float2(clamp(velCameraRot.x, -0.15f, 0.15), clamp(velCameraRot.y, -0.15f, 0.15f));// min(0.33, length(velCameraRot)) * normalize(velCameraRot);
 
-    velocity = EncodeVelocity((velocity - velCameraRot) * _MotionBlurIntensity) + clampVelRot;
+    velocity = ClampVelocity((velocity - velCameraRot) * _MotionBlurIntensity) + clampVelRot;
 
     return velocity;
 
@@ -56,8 +56,8 @@ void VelPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     PositionInputs posInput = GetPositionInput_Stereo(dispatchThreadId.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
 
     float2 velocity = ComputeVelocity(posInput, dispatchThreadId.xy);
-    //DecodeVelocity(LOAD_TEXTURE2D(_CameraMotionVectorsTexture, dispatchThreadId.xy), velocity);
+    _VelocityAndDepth[dispatchThreadId.xy] = float4(EncodeVelocity(velocity), posInput.linearDepth, 0.0f);
 
 
-    _VelocityAndDepth[dispatchThreadId.xy] = float3(velocity, posInput.linearDepth);
+
 }

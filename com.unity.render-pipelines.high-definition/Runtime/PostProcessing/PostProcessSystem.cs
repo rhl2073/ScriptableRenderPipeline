@@ -1178,9 +1178,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector4 tileTargetSize = new Vector4(tileTexWidth, tileTexHeight, 1.0f / tileTexWidth, 1.0f / tileTexHeight);
 
             // Need to change these factors.
-            RTHandle preppedVelocity = m_Pool.Get(Vector2.one, RenderTextureFormat.ARGBHalf);
-            RTHandle minMaxTileVel = m_Pool.Get(tileTexScale, RenderTextureFormat.ARGBHalf);
-            RTHandle maxTileNeigbourhood = m_Pool.Get(tileTexScale, RenderTextureFormat.ARGBHalf);
+            RTHandle preppedVelocity = m_Pool.Get(Vector2.one, RenderTextureFormat.RGB111110Float);
+            RTHandle minMaxTileVel = m_Pool.Get(tileTexScale, RenderTextureFormat.RGB111110Float);
+            RTHandle maxTileNeigbourhood = m_Pool.Get(tileTexScale, RenderTextureFormat.RGB111110Float);
 
             Vector4 motionBlurParams0 = new Vector4(
                 (new Vector2(camera.actualWidth, camera.actualHeight).magnitude),
@@ -1195,7 +1195,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // - Move velocity to pixel space rather than world.
             // - Pack normalized velocity and linear depth in R11G11B10
             // TODO_FCC: Find better velocity encoding.
-            // TODO_FCC: Find encoding again, for now brute force it to half.
             var cs = m_Resources.shaders.motionBlurVelocityPrepCS;
             int kernel = cs.FindKernel("VelPreppingCS");
             int threadGroupX = (camera.actualWidth + 7) / 8;

@@ -5,9 +5,9 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#define USE_WAVE_INTRINSICS   0
+#define USE_WAVE_INTRINSICS   defined(SUPPORTS_WAVE_INTRINSICS) && 0
 
-#ifdef SUPPORTS_WAVE_INTRINSICS
+#if USE_WAVE_INTRINSICS
 groupshared float2 gs_minVel[((TILE_SIZE * TILE_SIZE) / WAVE_SIZE) + 1];
 groupshared float2 gs_maxVel[((TILE_SIZE * TILE_SIZE) / WAVE_SIZE) + 1];
 
@@ -38,7 +38,7 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 {
 //
 //    // This works only with multiple of 8 for TILE_SIZE. Also, not faster. TODO_FCC:  Verify if we can make it faster. Probably not.
-#if defined(SUPPORTS_WAVE_INTRINSICS) && (USE_WAVE_INTRINSICS)
+#if  (USE_WAVE_INTRINSICS)
     uint waveCount = ((TILE_SIZE * TILE_SIZE) / WAVE_SIZE) + 1;
 
 	// This is a bit clunky... over complicated, but I am now curious.
@@ -177,7 +177,7 @@ void TileNeighbourhood(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex,
     float minVel1 = Min3(minVels[3], minVels[4], minVels[5]);
     float minVel2 = Min3(minVels[6], minVels[7], minVels[8]);
 
-    _TileMaxNeighbourhood[id.xy] = float4(maxVel, Min3(minVel0, minVel1, minVel2), 0) ;
+    _TileMaxNeighbourhood[id.xy] = float3(maxVel, Min3(minVel0, minVel1, minVel2)) ;
 #else
     // Sample the 1-ring neighbourhood of tile texture
     float3 centralSample = _TileMinMaxVel[id.xy + uint2( 0,  0)].xyz;
@@ -203,7 +203,7 @@ void TileNeighbourhood(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex,
     float minVel2 = Min3(v6.z, v7.z, v8.z);
 
 
-    _TileMaxNeighbourhood[id.xy] = float4(MaxVel(maxVel0, MaxVel(maxVel1, maxVel2)), Min3(minVel0, minVel1, minVel2), 0) ;
+    _TileMaxNeighbourhood[id.xy] = float3(MaxVel(maxVel0, MaxVel(maxVel1, maxVel2)), Min3(minVel0, minVel1, minVel2)) ;
 #endif
 }
 

@@ -1,10 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
 
-// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel MotionBlurCS
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
 RWTexture2D<float3> _OutputTexture;
 Texture2D _InputTexture;
 
@@ -175,9 +172,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0f).xyz;
 
     // Get velocity in pixels extents.
-    // TODO_FCC: This should be one texture sample, not two. Find better storage, now just make it work.  
     float2 maxVel = DecodeVelocityFromPacked(tileMaxNeighbourhood.xy);
-
     float maxVelLength = VelocityLengthInPixelsFromEncoded(tileMaxNeighbourhood.xy);
     float minVelLengthInPixels =  tileMaxNeighbourhood.z * _ScreenMagnitude;
 
@@ -232,7 +227,6 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         float3 colorAccumulation = 0.0f;
 
-        // Note: anything marked fw_ refer to the forward sample, anything bw_ refers to the backward sample. 
         if (fastPath)
         {
             for (int i = 0; i < _SampleCount / 2; ++i)
@@ -249,9 +243,10 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         else
         {
             // Slow path.
-            float pixelToSampleScale = _SampleCount * 0.5f * maxVelLength;
 
             float3 velocityAndDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, centerSampleUV, 0).xyz;
+
+            float pixelToSampleScale = _SampleCount * 0.5f * maxVelLength;
             float2 centralTapVelocity = DecodeVelocityFromPacked(velocityAndDepth.xy);
             float  centralVelocityLen = VelocityLengthInPixelsFromEncoded(velocityAndDepth.xy);
 #if GUERTIN2014_DOUBLE_DIR
