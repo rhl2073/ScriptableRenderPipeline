@@ -223,13 +223,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
 
-            collector.AddShaderProperty(new Vector1ShaderProperty()
-            {
-                overrideReferenceName = "_DrawOrder",
-                floatType = FloatType.Integer,
-                value = 0.0f,
-            });
-
+            Vector1ShaderProperty drawOrder = new Vector1ShaderProperty();
+            drawOrder.overrideReferenceName = "_DrawOrder";
+            drawOrder.displayName = "Draw Order";
+            drawOrder.floatType = FloatType.Integer;
+            drawOrder.value = 0;
+            collector.AddShaderProperty(drawOrder);
             base.CollectShaderProperties(collector, generationMode);
         }
 

@@ -172,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (m_Material == null)
                     return;
-                m_IsHDRenderPipelineDecal = (m_Material.shader.name == "HDRenderPipeline/Decal");
+                m_IsHDRenderPipelineDecal = (m_Material.shader.name == "HDRP/Decal");
 
                 if(m_IsHDRenderPipelineDecal)
                 {
