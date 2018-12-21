@@ -5,59 +5,33 @@
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 
-// Prep velocity so that:
-//  - Compute velocity due to camera rotation
-//  - Compute velocity due to camera translation
-//  - Remove camera rotation velocity out of object velocity
-//  - Clamp (ObjectVelocity - CameraRotation) or (CameraTranslation) then add Camera rotation vel. 
+#define SKIP_PREPPING_IF_NOT_NEEDED defined(SUPPORTS_WAVE_INTRINSICS) && 1
 
-float2 ComputeVelocity(PositionInputs posInput, uint2 dispatchThreadId)
-{
-
-    // Once we have the velocity without camera translation -> velCameraRot = currNDC - prevNDCNoTrans;
-    // Velocity buffer will now contain fullVel = (Object + Camera Rotation + Camera Translation) with Object that might be 0. 
-    // We now do velToClamp = Clamp((fullVel - velCameraRot)) +  velCameraRot;
-
-    float4 worldPos = float4(posInput.positionWS, 1.0);
-    float4 prevPos = worldPos;
-
-    float4 prevClipPos = mul(_PrevVPMatrixNoTranslation, prevPos);
-    float4 curClipPos = mul(UNITY_MATRIX_UNJITTERED_VP, worldPos);
-
-    float2 previousPositionCS = prevClipPos.xy / prevClipPos.w;
-    float2 positionCS = curClipPos.xy / curClipPos.w;
-
-    float2 velCameraRot = (positionCS - previousPositionCS);
-#if UNITY_UV_STARTS_AT_TOP
-    velCameraRot.y = -velCameraRot.y;
-#endif
-
-    velCameraRot.x = velCameraRot.x * _TextureWidthScaling.y;
-
-    float2 velocity;
-    DecodeVelocity(LOAD_TEXTURE2D(_CameraMotionVectorsTexture, dispatchThreadId.xy), velocity);
-
-    // Encode should be clamp here.
-   
-    float2 clampVelRot =  float2(clamp(velCameraRot.x, -0.15f, 0.15), clamp(velCameraRot.y, -0.15f, 0.15f));// min(0.33, length(velCameraRot)) * normalize(velCameraRot);
-
-    velocity = ClampVelocity((velocity - velCameraRot) * _MotionBlurIntensity) + clampVelRot;
-
-    return velocity;
-
-}
-
-
-[numthreads(8,8,1)]
+[numthreads(8, 8,1)]
 void VelPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    // Compute linear depth
+    float3 velAndDepth = 0.0f;
+    float2 velocity;
+    DecodeVelocity(LOAD_TEXTURE2D(_CameraMotionVectorsTexture, dispatchThreadId.xy), velocity);
     float depth = SampleCameraDepth(dispatchThreadId);
-    PositionInputs posInput = GetPositionInput_Stereo(dispatchThreadId.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
 
-    float2 velocity = ComputeVelocity(posInput, dispatchThreadId.xy);
-    _VelocityAndDepth[dispatchThreadId.xy] = float4(EncodeVelocity(velocity), posInput.linearDepth, 0.0f);
+#if SKIP_PREPPING_IF_NOT_NEEDED
+    if (WaveActiveAnyTrue(any(velocity != 0.0f)))
+    {
+#endif
+        PositionInputs posInput = GetPositionInput_Stereo(dispatchThreadId.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
 
+        float2 finalVelocity = ComputeVelocity(posInput, velocity);
+        velAndDepth.xy = EncodeVelocity(finalVelocity);
+        velAndDepth.z = posInput.linearDepth;
+#if SKIP_PREPPING_IF_NOT_NEEDED
+    }
+    else
+    {
+        velAndDepth.z = LinearEyeDepth(depth, _ZBufferParams);
+    }
+#endif
 
-
+    // Compute linear depth
+    _VelocityAndDepth[dispatchThreadId.xy] = velAndDepth;
 }

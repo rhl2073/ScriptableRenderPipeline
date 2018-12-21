@@ -5,7 +5,7 @@
 #define TILE_SIZE                   32u
 #define WAVE_SIZE					64u
 
-#ifdef VELOCITY_PREPPING
+#ifdef VELOCITY_PREPPING 
 RWTexture2D<float3> _VelocityAndDepth;
 #else
 Texture2D<float3> _VelocityAndDepth;
@@ -115,6 +115,40 @@ float2 DecodeVelocityFromPacked(float2 velocity)
 }
 
 
+// Prep velocity so that:
+//  - Compute velocity due to camera rotation
+//  - Compute velocity due to camera translation
+//  - Remove camera rotation velocity out of object velocity
+//  - Clamp (ObjectVelocity - CameraRotation) or (CameraTranslation) then add Camera rotation vel. 
+float2 ComputeVelocity(PositionInputs posInput, float2 sampledVelocity)
+{
+    // Once we have the velocity without camera translation -> velCameraRot = currNDC - prevNDCNoTrans;
+    // Velocity buffer will now contain fullVel = (Object + Camera Rotation + Camera Translation) with Object that might be 0. 
+    // We now do velToClamp = Clamp((fullVel - velCameraRot)) +  velCameraRot;
+
+    float4 worldPos = float4(posInput.positionWS, 1.0);
+    float4 prevPos = worldPos;
+
+    float4 prevClipPos = mul(_PrevVPMatrixNoTranslation, prevPos);
+    float4 curClipPos = mul(UNITY_MATRIX_UNJITTERED_VP, worldPos);
+
+    float2 previousPositionCS = prevClipPos.xy / prevClipPos.w;
+    float2 positionCS = curClipPos.xy / curClipPos.w;
+
+    float2 velCameraRot = (positionCS - previousPositionCS);
+#if UNITY_UV_STARTS_AT_TOP
+    velCameraRot.y = -velCameraRot.y;
+#endif
+
+    velCameraRot.x = velCameraRot.x * _TextureWidthScaling.y;
+
+    // Encode should be clamp here.
+
+    float2 clampVelRot = float2(clamp(velCameraRot.x, -0.15f, 0.15), clamp(velCameraRot.y, -0.15f, 0.15f));
+
+    return ClampVelocity((sampledVelocity - velCameraRot) * _MotionBlurIntensity) + clampVelRot;
+}
+
 // --------------------------------------
 // Misc functions that work on encoded representation
 // --------------------------------------
@@ -126,8 +160,5 @@ float2 MinVel(float2 v, float2 w)
 
 float2 MaxVel(float2 v, float2 w)
 {
-    return VelocityLengthFromEncoded(v) < VelocityLengthFromEncoded(w) ? w : v;
+    return (VelocityLengthFromEncoded(v) < VelocityLengthFromEncoded(w)) ? w : v;
 }
-
-
-

@@ -179,6 +179,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     bool earlyOut = maxVelLength <= _MinVelThreshold;
 
 #if defined(SUPPORTS_WAVE_INTRINSICS)
+    earlyOut = WaveActiveAllTrue(earlyOut);
     bool fastPath = WaveActiveAllTrue(minVelLengthInPixels > (_MinMaxVelRatioForSlowPath * maxVelLength));
 #else
     // TODO: force it scalar with interlocked add or something like that (it is not always due to the jittering)
@@ -222,7 +223,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         float2 centerSampleUV = (0.5f + dispatchThreadId.xy) * _ScreenSize.zw;
 
-        float randomVal = RandomValue(dispatchThreadId.xy, 0);     // TODO_FCC: Animate
+        float randomVal = RandomValue(dispatchThreadId.xy, 0);     // TODO_FCC: Animate?
         float2 dir = 0.5f * maxVel;
 
         float3 colorAccumulation = 0.0f;

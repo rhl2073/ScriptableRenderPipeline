@@ -1171,7 +1171,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Temporary targets prep
 
             const int tileSize = 32;        // Must match define on MotionBlurCommon - TODO_FCC: Set define from C#
-            // TODO_FCC: Round up the scale! 
+            // TODO_FCC: Round up the scale
             int tileTexWidth    = Mathf.CeilToInt(camera.actualWidth / tileSize);
             int tileTexHeight   = Mathf.CeilToInt(camera.actualHeight / tileSize);
             Vector2 tileTexScale = new Vector2((float)tileTexWidth / camera.actualWidth, (float)tileTexHeight / camera.actualHeight);
@@ -1189,39 +1189,69 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_MotionBlur.tileMinMaxVelRatioForHighQuality
             );
 
+            bool combinedPrepAndTile = (Application.platform == RuntimePlatform.XboxOne) && false;   // TODO_FCC: This only on scorpio actually... Also, it is quite messy. 
+
             // -----------------------------------------------------------------------------
             // Prep velocity
 
             // - Move velocity to pixel space rather than world.
             // - Pack normalized velocity and linear depth in R11G11B10
-            // TODO_FCC: Find better velocity encoding.
-            var cs = m_Resources.shaders.motionBlurVelocityPrepCS;
-            int kernel = cs.FindKernel("VelPreppingCS");
-            int threadGroupX = (camera.actualWidth + 7) / 8;
-            int threadGroupY = (camera.actualHeight + 7) / 8;
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
-            cmd.SetComputeFloatParam(cs, HDShaderIDs._MotionBlurIntensity, m_MotionBlur.intensity);
-            cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.prevViewProjMatrixNoCameraTrans);
+            ComputeShader cs;
+            int kernel;
+            int threadGroupX;
+            int threadGroupY;
+            if (!combinedPrepAndTile)
+            {
+                cs = m_Resources.shaders.motionBlurVelocityPrepCS;
+                kernel = cs.FindKernel("VelPreppingCS");
+                threadGroupX = (camera.actualWidth + 7) / 8;
+                threadGroupY = (camera.actualHeight + 7) / 8;
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._MotionBlurIntensity, m_MotionBlur.intensity);
+                cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.prevViewProjMatrixNoCameraTrans);
 
-            cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+            }
+
 
             // -----------------------------------------------------------------------------
             // Generate MinMax velocity tiles
 
-            // We store R11G11B10 with RG = Max vel and B = Min vel magnitued
-            cs = m_Resources.shaders.motionBlurTileGenCS;
-            kernel = cs.FindKernel("TileGenPass");
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
-            threadGroupX = (camera.actualWidth + (tileSize-1)) / tileSize;
-            threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize;
-            cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+            // We store R11G11B10 with RG = Max vel and B = Min vel magnitude
+            if (!combinedPrepAndTile)
+            {
+                cs = m_Resources.shaders.motionBlurTileGenCS;
+                kernel = cs.FindKernel("TileGenPass");
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
+                threadGroupX = (camera.actualWidth + (tileSize - 1)) / tileSize;
+                threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize;
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+            }
+
+            // -----------------------------------------------------------------------------
+            // Prep and TileMinMax combined
+
+            if(combinedPrepAndTile)
+            {
+                cs = m_Resources.shaders.motionBlurTileGenCS;
+                kernel = cs.FindKernel("VelPrepAndTileMinMax");
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._MotionBlurIntensity, m_MotionBlur.intensity);
+                cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.prevViewProjMatrixNoCameraTrans);
+                threadGroupX = (camera.actualWidth + (tileSize - 1)) / tileSize;
+                threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize;
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+            }
 
             // -----------------------------------------------------------------------------
             // Generate max tiles neigbhourhood
 
+            cs = m_Resources.shaders.motionBlurTileGenCS;
             kernel = cs.FindKernel("TileNeighbourhood");
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);

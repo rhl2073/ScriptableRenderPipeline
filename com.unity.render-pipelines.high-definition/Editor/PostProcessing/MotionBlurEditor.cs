@@ -9,7 +9,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [VolumeComponentEditor(typeof(MotionBlur))]
     sealed class MotionBlurEditor : VolumeComponentEditor
     {
-
         SerializedDataParameter m_Intensity;
 
         SerializedDataParameter m_SampleCount;

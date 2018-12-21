@@ -1196,26 +1196,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     cmd.ClearRandomWriteTargets();
                                 }
                             }
-
-
-                            // TODO_FCC: Find better way to detect whether is used or not?
-                            var motionBlurSettings = VolumeManager.instance.stack.GetComponent<MotionBlur>();
-
-                            if (motionBlurSettings && motionBlurSettings.intensity > 0.0f && false /* TODO_FCC: Do we really need this? */)
-                            {
-                                using (new ProfilingSample(cmd, "Update stencil copy for Object motion vector", CustomSamplerId.UpdateStencilCopyForObjectVelocity.GetSampler()))
-                                {
-                                    HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
-                                    cmd.SetRandomWriteTarget(1, m_SharedRTManager.GetStencilBufferCopy());
-
-                                    m_CopyStencil.SetInt(HDShaderIDs._StencilRef, (int)StencilBitMask.ObjectVelocity);
-                                    m_CopyStencil.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.ObjectVelocity);
-
-                                    // Pass 4 performs an OR between the already present content of the copy and the stencil ref, if stencil test passes.
-                                    CoreUtils.DrawFullScreen(cmd, m_CopyStencil, null, 4);
-                                    cmd.ClearRandomWriteTargets();
-                                }
-                            }
                         }
 
 
