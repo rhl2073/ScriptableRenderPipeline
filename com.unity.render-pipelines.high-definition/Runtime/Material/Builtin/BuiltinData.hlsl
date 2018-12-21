@@ -42,7 +42,7 @@ void EncodeVelocity(float2 velocity, out float4 outBuffer)
 
 void DecodeVelocity(float4 inBuffer, out float2 velocity)
 {
-    velocity = inBuffer.x > 1.0f ? 0.0f : inBuffer.xy;
+    velocity = inBuffer.xy;
 }
 
 void EncodeDistortion(float2 distortion, float distortionBlur, bool isValidSource, out float4 outBuffer)
