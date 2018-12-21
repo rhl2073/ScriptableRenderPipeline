@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added cascade shadow visualisation toggle in HD shadow settings
 - Added icons for assets.
 - Added replace blending mode for distortion
+- Added basic distance fade for density volumes
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
@@ -28,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed usage of SSR with transparent on all master node
 - Fixed SSR and microshadowing on fabric material
 - Fixed blit pass for stereo rendering
+- Fixed lightlist bounds for stereo rendering
 - Fixed windows and in-game DebugMenu sync.
 - Fixed FrameSettings' LitShaderMode sync when opening DebugMenu.
 - Fixed Metal specific issues with decals, hitting a sampler limit and compiling AxF shader
@@ -49,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed specularAA not compiling in StackLit Master node
 - Fixed material debug view with stereo rendering
 - Fixed material's RenderQueue edition in default view.
+- Fixed banding issues within volumetric density buffer
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
