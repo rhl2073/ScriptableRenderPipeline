@@ -35,16 +35,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             bool advanced = isInAdvancedMode;
 
-            PropertyField(m_Intensity);
-            PropertyField(m_SampleCount);
-            PropertyField(m_MaxVelocityInPixels);
+            EditorGUILayout.HelpBox("Motion Blur is still heavily WIP and not ready for use in production. To test it regardless, parameters are all under advanced.", MessageType.Warning);
 
             if (advanced)
             {
+                PropertyField(m_Intensity);
+                PropertyField(m_SampleCount);
+                PropertyField(m_MaxVelocityInPixels);
+
                 PropertyField(m_MinVelInPixels);
                 PropertyField(m_TileMinMaxVelRatioForHighQuality);
-
-                // Advanced stuff
             }
         }
     }
