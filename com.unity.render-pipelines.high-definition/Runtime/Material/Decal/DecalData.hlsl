@@ -21,14 +21,14 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
     surfaceData.baseColor = _BaseColor;
 
-#if _COLORMAP
+#ifdef _COLORMAP
     surfaceData.baseColor *= SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoords);
 #endif
     surfaceData.baseColor.w *= _DecalColorMapAlphaScale;
 	surfaceData.baseColor.w *= albedoMapBlend;
 	albedoMapBlend = surfaceData.baseColor.w;   
 // outside _COLORMAP because we still have base color
-#if _ALBEDOCONTRIBUTION
+#ifdef _ALBEDOCONTRIBUTION
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
 #else
 	surfaceData.baseColor.w = 0;	// dont blend any albedo
@@ -37,7 +37,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     // Default to _DecalBlend, if we use _NormalBlendSrc as maskmap and there is no maskmap, it mean we have 1
 	float maskMapBlend = _DecalBlend;
 
-#if _MASKMAP
+#ifdef _MASKMAP
     surfaceData.mask = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, texCoords);
     surfaceData.mask.z *= _DecalMaskMapBlueScale;
 	maskMapBlend *= surfaceData.mask.z;	// store before overwriting with smoothness
@@ -49,7 +49,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 #endif
 
 	// needs to be after mask, because blend source could be in the mask map blue
-#if _NORMALMAP
+#ifdef _NORMALMAP
 	float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
 	float3 normalWS = mul((float3x3)normalToWorld, normalTS);
