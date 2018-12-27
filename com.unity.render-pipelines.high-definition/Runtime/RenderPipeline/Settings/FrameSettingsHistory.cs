@@ -32,8 +32,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregatedFrameSettings = hdrpAsset.GetDefaultFrameSettings(history.defaultType);
             if (additionalData && additionalData.customRenderingSettings)
             {
-                FrameSettings.Override(ref aggregatedFrameSettings, additionalData.renderingPathCustomFrameSettings, additionalData.renderingPathCustomOverrideFrameSettings);
-                history.customMask = additionalData.renderingPathCustomOverrideFrameSettings;
+                FrameSettings.Override(ref aggregatedFrameSettings, additionalData.renderingPathCustomFrameSettings, additionalData.renderingPathCustomFrameSettingsOverrideMask);
+                history.customMask = additionalData.renderingPathCustomFrameSettingsOverrideMask;
             }
             history.custom = aggregatedFrameSettings;
             FrameSettings.Sanitize(ref aggregatedFrameSettings, camera, hdrpAsset.GetRenderPipelineSettings());
@@ -150,7 +150,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // Uncomment if you re-enable LIGHTLOOP_SINGLE_PASS multi_compile in lit*.shader
                         //new DebugUI.BoolField { displayName = "Enable Tile/Cluster", getter = () => persistant.debug.enableTileAndCluster, setter = value => persistant.debug.enableTileAndCluster, value) },
-                        new DebugUI.BoolField { displayName = "Enable Fptl for Forward Opaque", getter = () => persistant.debug.IsEnable(FrameSettingsField.FptlForForwardOpaque), setter = value => persistant.debug.SetEnable(FrameSettingsField.FptlForForwardOpaque, value) },
+                        new DebugUI.BoolField { displayName = "Enable Fptl for Forward Opaque", getter = () => persistant.debug.IsEnable(FrameSettingsField.FPTLForForwardOpaque), setter = value => persistant.debug.SetEnable(FrameSettingsField.FPTLForForwardOpaque, value) },
                         new DebugUI.BoolField { displayName = "Enable Big Tile", getter = () => persistant.debug.IsEnable(FrameSettingsField.BigTilePrepass), setter = value => persistant.debug.SetEnable(FrameSettingsField.BigTilePrepass, value) },
                         new DebugUI.BoolField { displayName = "Enable Compute Lighting", getter = () => persistant.debug.IsEnable(FrameSettingsField.ComputeLightEvaluation), setter = value => persistant.debug.SetEnable(FrameSettingsField.ComputeLightEvaluation, value) },
                         new DebugUI.BoolField { displayName = "Enable Light Classification", getter = () => persistant.debug.IsEnable(FrameSettingsField.ComputeLightVariants), setter = value => persistant.debug.SetEnable(FrameSettingsField.ComputeLightVariants, value) },

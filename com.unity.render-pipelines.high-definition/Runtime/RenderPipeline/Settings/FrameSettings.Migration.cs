@@ -190,11 +190,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             newFrameSettingsFormat.SetEnable(FrameSettingsField.SSAOAsync, oldFrameSettingsFormat.runSSAOAsync);
             newFrameSettingsFormat.SetEnable(FrameSettingsField.ContactShadowsAsync, oldFrameSettingsFormat.runContactShadowsAsync);
             newFrameSettingsFormat.SetEnable(FrameSettingsField.VolumeVoxelizationsAsync, oldFrameSettingsFormat.runVolumeVoxelizationAsync);
-            newFrameSettingsFormat.SetEnable(FrameSettingsField.TileAndCluster, oldFrameSettingsFormat.lightLoopSettings.enableTileAndCluster);
+            newFrameSettingsFormat.SetEnable(FrameSettingsField.DeferredTileAndCluster, oldFrameSettingsFormat.lightLoopSettings.enableTileAndCluster);
             newFrameSettingsFormat.SetEnable(FrameSettingsField.ComputeLightEvaluation, oldFrameSettingsFormat.lightLoopSettings.enableComputeLightEvaluation);
             newFrameSettingsFormat.SetEnable(FrameSettingsField.ComputeLightVariants, oldFrameSettingsFormat.lightLoopSettings.enableComputeLightVariants);
             newFrameSettingsFormat.SetEnable(FrameSettingsField.ComputeMaterialVariants, oldFrameSettingsFormat.lightLoopSettings.enableComputeMaterialVariants);
-            newFrameSettingsFormat.SetEnable(FrameSettingsField.FptlForForwardOpaque, oldFrameSettingsFormat.lightLoopSettings.enableFptlForForwardOpaque);
+            newFrameSettingsFormat.SetEnable(FrameSettingsField.FPTLForForwardOpaque, oldFrameSettingsFormat.lightLoopSettings.enableFptlForForwardOpaque);
             newFrameSettingsFormat.SetEnable(FrameSettingsField.BigTilePrepass, oldFrameSettingsFormat.lightLoopSettings.enableBigTilePrepass);
 
             // OverrideMask
@@ -309,7 +309,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     switch (val)
                     {
                         case ObsoleteLightLoopSettingsOverrides.TileAndCluster:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.TileAndCluster] = true;
+                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.DeferredTileAndCluster] = true;
                             break;
                         case ObsoleteLightLoopSettingsOverrides.BigTilePrepass:
                             newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.BigTilePrepass] = true;
@@ -324,7 +324,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ComputeMaterialVariants] = true;
                             break;
                         case ObsoleteLightLoopSettingsOverrides.FptlForForwardOpaque:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.FptlForForwardOpaque] = true;
+                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.FPTLForForwardOpaque] = true;
                             break;
                         default:
                             throw new ArgumentException("Unknown ObsoleteLightLoopSettingsOverrides");

@@ -88,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         //lightLoop settings from 120 to 127
         [FrameSettingsField(3)]
-        FptlForForwardOpaque = 120,
+        FPTLForForwardOpaque = 120,
         [FrameSettingsField(3)]
         BigTilePrepass = 121,
         [FrameSettingsField(3)]
@@ -98,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [FrameSettingsField(3)]
         ComputeMaterialVariants = 124,
         [FrameSettingsField(3)]
-        TileAndCluster = 125,
+        DeferredTileAndCluster = 125,
         Reflection = 126, //set by engine, not for DebugMenu/Inspector
 
         //only 128 booleans saved. For more, change the CheapBitArray used
@@ -150,11 +150,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.SSAOAsync,
                 (uint)FrameSettingsField.ContactShadowsAsync,
                 (uint)FrameSettingsField.VolumeVoxelizationsAsync,
-                (uint)FrameSettingsField.TileAndCluster,
+                (uint)FrameSettingsField.DeferredTileAndCluster,
                 (uint)FrameSettingsField.ComputeLightEvaluation,
                 (uint)FrameSettingsField.ComputeLightVariants,
                 (uint)FrameSettingsField.ComputeMaterialVariants,
-                (uint)FrameSettingsField.FptlForForwardOpaque,
+                (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
             })
         };
@@ -190,11 +190,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.SSAOAsync,
                 (uint)FrameSettingsField.ContactShadowsAsync,
                 (uint)FrameSettingsField.VolumeVoxelizationsAsync,
-                (uint)FrameSettingsField.TileAndCluster,
+                (uint)FrameSettingsField.DeferredTileAndCluster,
                 (uint)FrameSettingsField.ComputeLightEvaluation,
                 (uint)FrameSettingsField.ComputeLightVariants,
                 (uint)FrameSettingsField.ComputeMaterialVariants,
-                (uint)FrameSettingsField.FptlForForwardOpaque,
+                (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
             })
         };
@@ -212,7 +212,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool IsEnable(FrameSettingsField field) => bitDatas[(uint)field];
         public void SetEnable(FrameSettingsField field, bool value) => bitDatas[(uint)field] = value;
         
-        public bool fptl => litShaderMode == LitShaderMode.Deferred || bitDatas[(int)FrameSettingsField.FptlForForwardOpaque];
+        public bool fptl => litShaderMode == LitShaderMode.Deferred || bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque];
         public float specularGlobalDimmer => bitDatas[(int)FrameSettingsField.Reflection] ? 1f : 0f;
         
         public bool BuildLightListRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.LightListAsync];
@@ -317,14 +317,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
             // Disable FPTL for stereo for now
-            bool fptlForwardOpaque = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.FptlForForwardOpaque] &= !msaa && !XRGraphics.enabled;
+            bool fptlForwardOpaque = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa && !XRGraphics.enabled;
         }
         
         public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset)
         {
             aggregatedFrameSettings = hdrpAsset.GetDefaultFrameSettings(additionalData.defaultFrameSettings);
             if (additionalData && additionalData.customRenderingSettings)
-                Override(ref aggregatedFrameSettings, additionalData.renderingPathCustomFrameSettings, additionalData.renderingPathCustomOverrideFrameSettings);
+                Override(ref aggregatedFrameSettings, additionalData.renderingPathCustomFrameSettings, additionalData.renderingPathCustomFrameSettingsOverrideMask);
             Sanitize(ref aggregatedFrameSettings, camera, hdrpAsset.GetRenderPipelineSettings());
         }
         
