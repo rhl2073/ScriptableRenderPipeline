@@ -23,7 +23,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
             public static GUIContent decalBlendText = new GUIContent("Global Opacity", "Whole decal Opacity");
             public static GUIContent albedoModeText = new GUIContent("Affect BaseColor", "Base color + Opacity, Opacity only");
- 			public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh decal depth bias", "prevents z-fighting");
+ 			public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh decal depth bias", "Allow to adjust depth to prevents z-fighting with decal mesh");
 	 		public static GUIContent drawOrderText = new GUIContent("Draw order", "Controls draw order of decal projectors");
             public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Smoothness remapping");
             public static GUIContent metallicText = new GUIContent("Metallic Scale", "Metallic Scale");

@@ -29,8 +29,7 @@ void Frag(  PackedVaryingsToPS packedInput,
             )
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
-	DecalSurfaceData surfaceData;
-    ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
+    DecalSurfaceData surfaceData;
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
 	float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionSS.xy).x;
@@ -72,6 +71,10 @@ void Frag(  PackedVaryingsToPS packedInput,
         _DecalHTile[input.positionSS.xy / 8] = PackByte(oldVal);
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
+    }
+    else
+    {
+        ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
     }
 #endif
 
