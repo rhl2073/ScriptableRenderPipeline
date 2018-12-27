@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class CreateDecalShaderGraph : EndNameEditAction
     {
-        [MenuItem("Assets/Create/Shader/Decal Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader/HDRP/Decal Graph", false, 208)]
         public static void CreateMaterialGraph()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateDecalShaderGraph>(),

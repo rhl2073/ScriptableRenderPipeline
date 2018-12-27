@@ -222,13 +222,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-
             Vector1ShaderProperty drawOrder = new Vector1ShaderProperty();
             drawOrder.overrideReferenceName = "_DrawOrder";
             drawOrder.displayName = "Draw Order";
             drawOrder.floatType = FloatType.Integer;
             drawOrder.value = 0;
             collector.AddShaderProperty(drawOrder);
+
+            Vector1ShaderProperty decalMeshDepthBias = new Vector1ShaderProperty();
+            decalMeshDepthBias.overrideReferenceName = "_DecalMeshDepthBias";
+            decalMeshDepthBias.displayName = "DecalMesh DepthBias";
+            decalMeshDepthBias.floatType = FloatType.Default;
+            decalMeshDepthBias.value = 0;
+            collector.AddShaderProperty(decalMeshDepthBias);
+
             base.CollectShaderProperties(collector, generationMode);
         }
 
