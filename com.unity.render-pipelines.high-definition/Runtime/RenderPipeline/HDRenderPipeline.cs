@@ -472,7 +472,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 rendererPriority = true,
                 overridesEnvironmentLighting = true,
                 overridesFog = true,
-                overridesOtherLightingSettings = true
+                overridesOtherLightingSettings = true,
+                editableMaterialRenderQueue = false
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -1318,7 +1319,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         using (new ProfilingSample(cmd, "Render shadows", CustomSamplerId.RenderShadows.GetSampler()))
                         {
                             // This call overwrites camera properties passed to the shader system.
-                            m_LightLoop.RenderShadows(renderContext, cmd, cullingResults);
+                            m_LightLoop.RenderShadows(renderContext, cmd, cullingResults, hdCamera);
 
                             // Overwrite camera properties set during the shadow pass with the original camera properties.
                             renderContext.SetupCameraProperties(camera, camera.stereoEnabled);
@@ -1866,6 +1867,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     drawSettings.SetShaderPassName(4, HDShaderPassNames.s_MeshDecalsMSName);
                     drawSettings.SetShaderPassName(5, HDShaderPassNames.s_MeshDecalsAOSName);
                     drawSettings.SetShaderPassName(6, HDShaderPassNames.s_MeshDecalsMAOSName);
+                    drawSettings.SetShaderPassName(7, HDShaderPassNames.s_ShaderGraphMeshDecalsName);
                 }
                 else
                 {
