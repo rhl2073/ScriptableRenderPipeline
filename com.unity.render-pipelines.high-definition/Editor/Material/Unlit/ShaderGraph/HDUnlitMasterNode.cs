@@ -12,7 +12,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    [Title("Master", "Unlit")]
+    [Title("Master", "HDRP/Unlit")]
     class HDUnlitMasterNode : MasterNode<IHDUnlitSubShader>, IMayRequirePosition
     {
         public const string ColorSlotName = "Color";

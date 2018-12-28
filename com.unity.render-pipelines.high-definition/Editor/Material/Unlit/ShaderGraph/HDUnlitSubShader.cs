@@ -148,6 +148,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl\"",
             },
+            RequiredFields = new List<string>()
+            {
+                "FragInputs.positionRWS",
+            },
             PixelShaderSlots = new List<int>()
             {
                 HDUnlitMasterNode.AlphaSlotId,

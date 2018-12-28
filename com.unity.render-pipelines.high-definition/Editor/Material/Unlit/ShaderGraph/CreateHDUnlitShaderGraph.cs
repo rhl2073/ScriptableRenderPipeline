@@ -4,12 +4,12 @@ using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class CreateHDUnitShaderGraph : EndNameEditAction
+    public class CreateHDUnlitShaderGraph : EndNameEditAction
     {
         [MenuItem("Assets/Create/Shader/HDRP/Unlit Graph", false, 208)]
         public static void CreateMaterialGraph()
         {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUnlitShaderGraph>(),
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateHDUnlitShaderGraph>(),
                 string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
         }
 
