@@ -256,14 +256,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                             if (perChannelMask)
                             {
-                                // Following condition force users to always have at least one attribute enabled
-                                m_MaterialEditor.ShaderProperty(maskmapMetal, "Affect Metal");
-                                if ((maskmapMetal.floatValue == 0.0f) && (maskmapAO.floatValue == 0.0f) && (maskmapSmoothness.floatValue == 0.0f))
-                                    maskmapMetal.floatValue = 1.0f;
-                                m_MaterialEditor.ShaderProperty(maskmapAO, "Affect AO");
-                                if ((maskmapMetal.floatValue == 0.0f) && (maskmapAO.floatValue == 0.0f) && (maskmapSmoothness.floatValue == 0.0f))
-                                    maskmapAO.floatValue = 1.0f;
-                                m_MaterialEditor.ShaderProperty(maskmapSmoothness, "Affect Smoothness");
+                                bool mustDisableScope = false;
+                                if (maskmapMetal.floatValue + maskmapAO.floatValue + maskmapSmoothness.floatValue == 1.0f)
+                                    mustDisableScope = true;
+
+                                using (new EditorGUI.DisabledScope(mustDisableScope && maskmapMetal.floatValue == 1.0f))
+                                {
+                                    m_MaterialEditor.ShaderProperty(maskmapMetal, "Affect Metal");
+                                }
+                                using (new EditorGUI.DisabledScope(mustDisableScope && maskmapAO.floatValue == 1.0f))
+                                {
+                                    m_MaterialEditor.ShaderProperty(maskmapAO, "Affect AO");
+                                }
+                                using (new EditorGUI.DisabledScope(mustDisableScope && maskmapSmoothness.floatValue == 1.0f))
+                                {
+                                    m_MaterialEditor.ShaderProperty(maskmapSmoothness, "Affect Smoothness");
+                                }
+
+                                // Sanity condition in case for whatever reasons all value are 0.0 but it should never happen
                                 if ((maskmapMetal.floatValue == 0.0f) && (maskmapAO.floatValue == 0.0f) && (maskmapSmoothness.floatValue == 0.0f))
                                     maskmapSmoothness.floatValue = 1.0f;
 
