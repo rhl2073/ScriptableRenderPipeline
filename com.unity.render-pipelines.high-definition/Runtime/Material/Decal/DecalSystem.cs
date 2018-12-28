@@ -174,7 +174,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
                 m_IsHDRenderPipelineDecal = (m_Material.shader.name == "HDRP/Decal");
 
-                if(m_IsHDRenderPipelineDecal)
+                if (m_IsHDRenderPipelineDecal)
                 {
                     m_Diffuse.Initialize(m_Material.GetTexture("_BaseColorMap"), Vector4.zero);
                     m_Normal.Initialize(m_Material.GetTexture("_NormalMap"), Vector4.zero);
@@ -184,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BaseColor = m_Material.GetVector("_BaseColor");
                     m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), m_Material.GetFloat("_MaskBlendMode"));
                     m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
-                    m_ScalingMAB = new Vector4(m_Material.GetFloat("_MetallicScale"), m_Material.GetFloat("_DecalColorMapAlphaScale"), m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f);
+                    m_ScalingMAB = new Vector4(m_Material.GetFloat("_MetallicScale"), 0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f);
                 }
             }
 
@@ -418,7 +418,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         normalToWorldBatch[instanceCount].SetRow(3, m_CachedUVScaleBias[decalIndex]);
 
                         // clustered forward data
-                        if(m_CachedAffectsTransparency[decalIndex])
+                        if (m_CachedAffectsTransparency[decalIndex])
                         { 
                             m_DecalDatas[m_DecalDatasCount].worldToDecal = decalToWorldBatch[instanceCount].inverse;
                             m_DecalDatas[m_DecalDatasCount].normalToWorld = normalToWorldBatch[instanceCount];
@@ -452,7 +452,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // only add if any projectors in this decal set affect transparency, doesn't actually allocate textures in the atlas yet, this is because we want all the textures in the list so we can optimize the packing
-                if( anyAffectTransparency)
+                if (anyAffectTransparency)
                 { 
                     AddToTextureList(ref instance.m_TextureList);
                 }
@@ -517,7 +517,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void Cleanup()
             {
-                if(m_CullingGroup != null)
+                if (m_CullingGroup != null)
                 {
                     CullingGroupManager.instance.Free(m_CullingGroup);
                 }

@@ -10,13 +10,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [Flags]
         enum Expandable : uint
         {
-            Input = 1 << 0
+            Input = 1 << 0,
+            Sorting = 1 << 1
         }
         protected override uint defaultExpandedState { get { return (uint)Expandable.Input; } }
 
         protected static class Styles
         {
             public static string InputsText = "Surface Inputs";
+            public static string SortingText = "Sorting Inputs";
 
             public static GUIContent baseColorText = new GUIContent("Base Map", "BaseColor (RGB) and Opacity (A)");
             public static GUIContent baseColorText2 = new GUIContent("Opacity", "Opacity (A)");
@@ -28,8 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Smoothness remapping");
             public static GUIContent metallicText = new GUIContent("Metallic Scale", "Metallic Scale");
             public static GUIContent aoRemappingText = new GUIContent("AO Remapping", "AO remapping");
-            public static GUIContent colorMapAlphaScaleText = new GUIContent("Base color alpha scale", "Color map alpha scale");
-            public static GUIContent maskMapBlueScaleText = new GUIContent("Mask map blue scale", "Mask map blue scale");
+            public static GUIContent maskMapBlueScaleText = new GUIContent("Scale Mask Map Blue Channel", "Scale the Mask Map Blue channel which can be used as Opacity depends on blend source chosen");
 
             public static GUIContent[] maskMapText =
             {
@@ -113,9 +114,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty metallicScale = new MaterialProperty();
         protected const string kMetallicScale = "_MetallicScale";
 
-        protected MaterialProperty colorMapAlphaScale = new MaterialProperty();
-        protected const string kColorMapAlphaScale = "_DecalColorMapAlphaScale";
-
         protected MaterialProperty maskMapBlueScale = new MaterialProperty();
         protected const string kMaskMapBlueScale = "_DecalMaskMapBlueScale";
 
@@ -142,7 +140,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             smoothnessRemapMin = FindProperty(kSmoothnessRemapMin, props);
             smoothnessRemapMax = FindProperty(kSmoothnessRemapMax, props);
             metallicScale = FindProperty(kMetallicScale, props);
-            colorMapAlphaScale = FindProperty(kColorMapAlphaScale, props);
             maskMapBlueScale = FindProperty(kMaskMapBlueScale, props);
 
             // always instanced
@@ -235,7 +232,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUI.indentLevel++;
                         m_MaterialEditor.ShaderProperty(albedoMode, Styles.albedoModeText);
                         EditorGUI.indentLevel--;
-                        m_MaterialEditor.ShaderProperty(colorMapAlphaScale, Styles.colorMapAlphaScaleText);
                         m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
                         if (material.GetTexture(kNormalMap))
                         {
@@ -248,7 +244,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if (material.GetTexture(kMaskMap))
                         {
                             EditorGUI.indentLevel++;
+                            
+                            EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref smoothnessRemapMinValue, ref smoothnessRemapMaxValue, 0.0f, 1.0f);
+                            if (perChannelMask)
+                            {
+                                m_MaterialEditor.ShaderProperty(metallicScale, Styles.metallicText);
+                                EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref AORemapMinValue, ref AORemapMaxValue, 0.0f, 1.0f);
+                            }
+
                             maskBlendSrcValue = EditorGUILayout.Popup("Mask Opacity channel", (int)maskBlendSrcValue, blendSourceNames);
+
                             if (perChannelMask)
                             {
                                 // Following condition force users to always have at least one attribute enabled
@@ -275,15 +280,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             {
                                 maskBlendFlags = Decal.MaskBlendFlags.Smoothness;
                             }
+
                             EditorGUI.indentLevel--;
-                            m_MaterialEditor.ShaderProperty(maskMapBlueScale, Styles.maskMapBlueScaleText);
-                            m_MaterialEditor.ShaderProperty(metallicScale, Styles.metallicText);
-                            EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref AORemapMinValue, ref AORemapMaxValue, 0.0f, 1.0f);
-                            EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref smoothnessRemapMinValue, ref smoothnessRemapMaxValue, 0.0f, 1.0f);
                         }
 
-                        m_MaterialEditor.ShaderProperty(drawOrder, Styles.drawOrderText);
-                        m_MaterialEditor.ShaderProperty(decalMeshDepthBias, Styles.meshDecalDepthBiasText);
+                        m_MaterialEditor.ShaderProperty(maskMapBlueScale, Styles.maskMapBlueScaleText);
                         m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
 
                         EditorGUI.indentLevel--;
@@ -308,6 +309,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
             }
+
+            EditorGUI.indentLevel++;
+            using (var header = new HeaderScope(Styles.SortingText, (uint)Expandable.Sorting, this))
+            {
+                if (header.expanded)
+                {
+                    m_MaterialEditor.ShaderProperty(drawOrder, Styles.drawOrderText);
+                    m_MaterialEditor.ShaderProperty(decalMeshDepthBias, Styles.meshDecalDepthBiasText);                    
+                }
+            }
+            EditorGUI.indentLevel--;
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
