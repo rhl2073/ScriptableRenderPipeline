@@ -46,6 +46,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     input.texCoord3.xy = positionDS.xz;
 
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+    GetSurfaceData(input, V, posInput, surfaceData);
 
 	// have to do explicit test since compiler behavior is not defined for RW resources and discard instructions
 	if ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
@@ -61,20 +62,15 @@ void Frag(  PackedVaryingsToPS packedInput,
     // Unused
     float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
     #endif
+    GetSurfaceData(input, V, posInput, surfaceData);
 
-#endif
-
-        GetSurfaceData(input, V, posInput, surfaceData);
+#endif        
 
         uint oldVal = UnpackByte(_DecalHTile[input.positionSS.xy / 8]);
         oldVal |= surfaceData.HTileMask;
         _DecalHTile[input.positionSS.xy / 8] = PackByte(oldVal);
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
-    }
-    else
-    {
-        ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
     }
 #endif
 
