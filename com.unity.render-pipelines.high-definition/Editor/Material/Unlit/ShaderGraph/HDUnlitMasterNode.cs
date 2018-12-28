@@ -198,17 +198,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        DoubleSidedMode m_DoubleSidedMode;
+        bool m_DoubleSided;
 
-        public DoubleSidedMode doubleSidedMode
+        public ToggleData doubleSided
         {
-            get { return m_DoubleSidedMode; }
+            get { return new ToggleData(m_DoubleSided); }
             set
             {
-                if (m_DoubleSidedMode == value)
+                if (m_DoubleSided == value.isOn)
                     return;
-
-                m_DoubleSidedMode = value;
+                m_DoubleSided = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
         }

@@ -124,12 +124,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 --indentLevel;
             }
 
-            ps.Add(new PropertyRow(CreateLabel("Double-Sided", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(new Label("Double-Sided")), (row) =>
             {
-                row.Add(new EnumField(DoubleSidedMode.Disabled), (field) =>
+                row.Add(new Toggle(), (toggle) =>
                 {
-                    field.value = m_Node.doubleSidedMode;
-                    field.RegisterValueChangedCallback(ChangeDoubleSidedMode);
+                    toggle.value = m_Node.doubleSided.isOn;
+                    toggle.OnToggleChanged(ChangeDoubleSided);
                 });
             });
 
@@ -154,13 +154,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.surfaceType = (SurfaceType)evt.newValue;
         }
 
-        void ChangeDoubleSidedMode(ChangeEvent<Enum> evt)
+        void ChangeDoubleSided(ChangeEvent<bool> evt)
         {
-            if (Equals(m_Node.doubleSidedMode, evt.newValue))
-                return;
-
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Double-Sided Mode Change");
-            m_Node.doubleSidedMode = (DoubleSidedMode)evt.newValue;
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Double-Sided Change");
+            ToggleData td = m_Node.doubleSided;
+            td.isOn = evt.newValue;
+            m_Node.doubleSided = td;
         }
 
         void ChangeBlendMode(ChangeEvent<Enum> evt)
