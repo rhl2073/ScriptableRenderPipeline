@@ -13,14 +13,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [Serializable]
     [Title("Master", "Unlit")]
-    class HDUnlitMasterNode : MasterNode<IHDUnlitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class HDUnlitMasterNode : MasterNode<IHDUnlitSubShader>, IMayRequirePosition
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
         public const string AlphaClipThresholdSlotName = "AlphaClipThreshold";
         public const string DistortionSlotName = "Distortion";
         public const string DistortionBlurSlotName = "DistortionBlur";
-        public const string PositionName = "Position";
+        public const string PositionSlotName = "Position";
         public const string EmissionSlotName = "Emission";
 
         public const int ColorSlotId = 0;

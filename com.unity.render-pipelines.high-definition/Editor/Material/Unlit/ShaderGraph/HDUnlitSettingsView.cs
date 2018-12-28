@@ -45,17 +45,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             if (m_Node.surfaceType == SurfaceType.Transparent)
             {
                 ++indentLevel;
-                if (!m_Node.HasRefraction())
+                ps.Add(new PropertyRow(CreateLabel("Blending Mode", indentLevel)), (row) =>
                 {
-                    ps.Add(new PropertyRow(CreateLabel("Blending Mode", indentLevel)), (row) =>
+                    row.Add(new EnumField(HDUnlitMasterNode.AlphaModeLit.Additive), (field) =>
                     {
-                        row.Add(new EnumField(HDUnlitMasterNode.AlphaModeLit.Additive), (field) =>
-                        {
-                            field.value = GetAlphaModeLit(m_Node.alphaMode);
-                            field.RegisterValueChangedCallback(ChangeBlendMode);
-                        });
+                        field.value = GetAlphaModeLit(m_Node.alphaMode);
+                        field.RegisterValueChangedCallback(ChangeBlendMode);
                     });
-                }
+                });
 
                 m_SortPiorityField = new IntegerField();
                 ps.Add(new PropertyRow(CreateLabel("Sorting Priority", indentLevel)), (row) =>
