@@ -117,7 +117,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // The settings here are per frame settings.
     // Each camera must have its own per frame settings
     [Serializable]
-    [System.Diagnostics.DebuggerDisplay("FrameSettings overriding {bitDatas.humanizedData}")]
+    [System.Diagnostics.DebuggerDisplay("FrameSettings {bitDatas.humanizedData}")]
     public partial struct FrameSettings
     {
         public static readonly FrameSettings defaultCamera = new FrameSettings()

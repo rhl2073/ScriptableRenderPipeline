@@ -22,6 +22,7 @@ namespace UnityEngine.Experimental.Rendering
     // In order to work, it must be BitArrayN where N is the capacity without suffix.
 
     [Serializable]
+    [System.Diagnostics.DebuggerDisplay("{this.GetType().Name} {humanizedData}")]
     public struct BitArray8 : IBitArray
     {
         [SerializeField]
@@ -67,6 +68,7 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     [Serializable]
+    [System.Diagnostics.DebuggerDisplay("{this.GetType().Name} {humanizedData}")]
     public struct BitArray16 : IBitArray
     {
         [SerializeField]
@@ -112,6 +114,7 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     [Serializable]
+    [System.Diagnostics.DebuggerDisplay("{this.GetType().Name} {humanizedData}")]
     public struct BitArray32 : IBitArray
     {
         [SerializeField]
@@ -158,6 +161,7 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     [Serializable]
+    [System.Diagnostics.DebuggerDisplay("{this.GetType().Name} {humanizedData}")]
     public struct BitArray64 : IBitArray
     {
         [SerializeField]
@@ -203,6 +207,7 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     [Serializable]
+    [System.Diagnostics.DebuggerDisplay("{this.GetType().Name} {humanizedData}")]
     public struct BitArray128 : IBitArray
     {
         [SerializeField]
@@ -264,6 +269,7 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     [Serializable]
+    [System.Diagnostics.DebuggerDisplay("{this.GetType().Name} {humanizedData}")]
     public struct BitArray256 : IBitArray
     {
         [SerializeField]
