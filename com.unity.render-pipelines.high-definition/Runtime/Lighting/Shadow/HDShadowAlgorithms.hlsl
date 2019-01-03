@@ -289,9 +289,7 @@ int EvalShadow_GetSplitIndex(HDShadowContext shadowContext, int index, float3 po
     for (; i < _CascadeShadowCount; i++)
     {
         float4  sphere  = dsd.sphereCascades[i];
-#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0) && defined(USING_STEREO_MATRICES)
-        sphere.xyz += _WorldSpaceCameraPosEyeOffset;
-#endif
+        ApplyCameraRelativeStereoOffset(sphere.xyz);
                 wposDir = -sphere.xyz + positionWS;
         float   distSq  = dot(wposDir, wposDir);
         relDistance = distSq / sphere.w;
@@ -321,9 +319,7 @@ void LoadDirectionalShadowDatas(inout HDShadowData sd, HDShadowContext shadowCon
     sd.viewBias = shadowContext.shadowDatas[index].viewBias;
     sd.atlasOffset = shadowContext.shadowDatas[index].atlasOffset;
 
-#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0) && defined(USING_STEREO_MATRICES)
-    sd.pos += _WorldSpaceCameraPosEyeOffset;
-#endif
+    ApplyCameraRelativeStereoOffset(sd.pos);
 }
 
 float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)

@@ -148,6 +148,13 @@ float2 TexCoordStereoOffset(float2 texCoord)
     return texCoord;
 }
 
+void ApplyCameraRelativeStereoOffset(inout float3 pos)
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0) && defined(USING_STEREO_MATRICES)
+    pos += _WorldSpaceCameraPosEyeOffset;
+#endif
+}
+
 // This function assumes the bitangent flip is encoded in tangentWS.w
 float3x3 BuildWorldToTangent(float4 tangentWS, float3 normalWS)
 {
