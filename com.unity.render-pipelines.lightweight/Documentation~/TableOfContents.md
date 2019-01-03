@@ -11,5 +11,7 @@
 * [Shaders in LWRP](shaders-in-lwrp.md)
   * [Lit](lit-shader.md)
   * [Simple Lit](simple-lit-shader.md)
+  * [Baked Lit](baked-lit-shader.md)
+  * [Unlit](unlit-shader.md)
   * [Upgrading shaders](upgrading-your-shaders.md)
 
