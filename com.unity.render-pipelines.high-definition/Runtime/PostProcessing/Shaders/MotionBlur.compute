@@ -230,7 +230,8 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         if (fastPath)
         {
-            for (int i = 0; i < _SampleCount / 2; ++i)
+            uint stepCount = _SampleCount / 2u;
+            for (uint i = 0; i < stepCount; ++i)
             {
                 colorAccumulation += ProcessSampleFastPath(i, dir, invSampleCount, centerSampleUV, randomVal, -1);
                 colorAccumulation += ProcessSampleFastPath(i, dir, invSampleCount, centerSampleUV, randomVal, 1);
@@ -244,7 +245,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         else
         {
             // Slow path.
-
+            uint stepCount = _SampleCount / 2u;
             float3 velocityAndDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, centerSampleUV, 0).xyz;
 
             float pixelToSampleScale = _SampleCount * 0.5f * maxVelLength;
@@ -257,10 +258,10 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
             float  centralDepth = velocityAndDepth.z;
 
             float4 accumulation = 0.0f;
-            for (int i = 0; i < _SampleCount / 2; ++i)
+            for (uint i = 0; i < stepCount; ++i)
             {
 #if GUERTIN2014_DOUBLE_DIR
-                dir = i % 2 == 0 ? centralDir : dir;
+                dir = i % 2u == 0 ? centralDir : dir;
 #endif
                 float fw_Depth, bw_Depth;
                 float fw_VelLength, bw_VelLength;
