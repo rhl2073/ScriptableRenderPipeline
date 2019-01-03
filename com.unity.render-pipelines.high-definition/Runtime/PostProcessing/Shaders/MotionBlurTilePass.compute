@@ -62,15 +62,17 @@ float3 ParallelReduction(uint gid, uint threadIdx, float2 velocity)
     // We have values for all the waves, let's sync. 
     GroupMemoryBarrierWithGroupSync();
 
-    // Find min and max across waves.
-    minVelLen = gs_minVel[0];
-    maxVelPacked = gs_maxVel[0];
-    for (int i = 1; i < waveCount; ++i)
+    if (threadIdx == 0)
     {
-        minVelLen = min(minVelLen, gs_minVel[i]);
-        maxVelPacked = max(maxVelPacked, gs_maxVel[i]);
+        // Find min and max across waves.
+        minVelLen = gs_minVel[0];
+        maxVelPacked = gs_maxVel[0];
+        for (int i = 1; i < waveCount; ++i)
+        {
+            minVelLen = min(minVelLen, gs_minVel[i]);
+            maxVelPacked = max(maxVelPacked, gs_maxVel[i]);
+        }
     }
-
 #else
     gs_minVel[threadIdx] = velLength;
     gs_maxVel[threadIdx] = packedVel;
