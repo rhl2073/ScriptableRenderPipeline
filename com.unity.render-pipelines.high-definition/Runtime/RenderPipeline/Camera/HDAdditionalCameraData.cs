@@ -34,9 +34,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Color backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
         public bool clearDepth = true;
         
-        [Tooltip("Layer Mask used for the volume interpolation for this camera.")]
+        [Tooltip("LayerMask HDRP uses for Volume interpolation for this Camera.")]
         public LayerMask volumeLayerMask = -1;
-        [Tooltip("Transform used for the volume interpolation for this camera.")]
+        [Tooltip("Transform HDRP uses for Volume interpolation for this Camera.")]
         public Transform volumeAnchorOverride;
 
         // Physical parameters
@@ -45,10 +45,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float iso = 400f;
         public FlipYMode flipYMode;
         
-        [Tooltip("This will skip rendering settings to directly rendering in fullscreen (for instance: Useful for video)")]
+        [Tooltip("Skips rendering settings to directly render in fullscreen (Useful for video)")]
         public bool fullscreenPassthrough = false;
 
-        [Tooltip("This will allows to override default settings for this renderer")]
+        [Tooltip("Allows you to override the default settings for this Renderer")]
         public bool customRenderingSettings = false;
 
         // Event used to override HDRP rendering for this particular camera.

@@ -38,24 +38,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        [Tooltip("Maximum shadow distance for all light types.")]
+        [Tooltip("Maximum distance HDRP renders shadows for all Light types.")]
         public NoInterpMinFloatParameter        maxShadowDistance = new NoInterpMinFloatParameter(500.0f, 0.0f);
 
-        [Tooltip("Number of splits for cascaded shadow maps.")]
+        [Tooltip("Number of cascades HDRP uses for cascaded shadow maps.")]
         public NoInterpClampedIntParameter      cascadeShadowSplitCount = new NoInterpClampedIntParameter(4, 1, 4);
-        [Tooltip("Ratio of the first split against max shadow distance.")]
+        [Tooltip("Position of the first cascade split as a percentage of Max Distance.")]
         public NoInterpClampedFloatParameter    cascadeShadowSplit0 = new NoInterpClampedFloatParameter(0.05f, 0.0f, 1.0f);
-        [Tooltip("Ratio of the second split against max shadow distance.")]
+        [Tooltip("Position of the second cascade split as a percentage of Max Distance.")]
         public NoInterpClampedFloatParameter    cascadeShadowSplit1 = new NoInterpClampedFloatParameter(0.15f, 0.0f, 1.0f);
-        [Tooltip("Ratio of the third split against max shadow distance.")]
+        [Tooltip("Position of the third cascade split as a percentage of Max Distance.")]
         public NoInterpClampedFloatParameter    cascadeShadowSplit2 = new NoInterpClampedFloatParameter(0.3f, 0.0f, 1.0f);
-        [Tooltip("Border size between first and second split.")]
+        [Tooltip("Border size between the first and second cascade split.")]
         public NoInterpMinFloatParameter        cascadeShadowBorder0 = new NoInterpMinFloatParameter(0.0f, 0.0f);
-        [Tooltip("Border size between second and third split.")]
+        [Tooltip("Border size between the second and third cascade split.")]
         public NoInterpMinFloatParameter        cascadeShadowBorder1 = new NoInterpMinFloatParameter(0.0f, 0.0f);
-        [Tooltip("Border size between third and last split.")]
+        [Tooltip("Border size between the third and last cascade split.")]
         public NoInterpMinFloatParameter        cascadeShadowBorder2 = new NoInterpMinFloatParameter(0.0f, 0.0f);
-        [Tooltip("Border size at the end of last split.")]
+        [Tooltip("Border size at the end of the last cascade split.")]
         public NoInterpMinFloatParameter        cascadeShadowBorder3 = new NoInterpMinFloatParameter(0.0f, 0.0f);
     }
 }
