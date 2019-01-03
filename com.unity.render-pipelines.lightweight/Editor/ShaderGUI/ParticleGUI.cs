@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditorInternal;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.LWRP.ShaderGUI
 {
@@ -301,24 +302,26 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         
         public static void SetMaterialKeywords(Material material)
         {
+            // Setup particle + material color blending
+            SetupMaterialWithColorMode(material);
+            // Is the material transparent, this is set in BaseShaderGUI
+            bool isTransparent = material.GetTag("RenderType", false) == "Transparent";
             // Z write doesn't work with distortion/fading
             bool hasZWrite = (material.GetInt("_ZWrite") != 0);
 
-            // Lit shader?
-            //bool useLighting = (material.GetFloat("_LightingEnabled") > 0.0f);
             material.EnableKeyword("_RECEIVE_SHADOWS_OFF");
 
             // Flipbook blending
             if (material.HasProperty("_FlipbookBlending"))
             {
                 var useFlipbookBlending = (material.GetFloat("_FlipbookBlending") > 0.0f);
-                BaseShaderGUI.SetKeyword(material, "_FLIPBOOKBLENDING_ON", useFlipbookBlending);
+                CoreUtils.SetKeyword(material, "_FLIPBOOKBLENDING_ON", useFlipbookBlending);
             }
             // Soft particles
             var useSoftParticles = false;
             if (material.HasProperty("_SoftParticlesEnabled"))
             {
-                useSoftParticles = (material.GetFloat("_SoftParticlesEnabled") > 0.0f);
+                useSoftParticles = (material.GetFloat("_SoftParticlesEnabled") > 0.0f && isTransparent);
                 if (useSoftParticles)
                 {
                     var softParticlesNearFadeDistance = material.GetFloat("_SoftParticlesNearFadeDistance");
@@ -344,11 +347,11 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 {
                     material.SetVector("_SoftParticleFadeParams", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
                 }
-                BaseShaderGUI.SetKeyword(material, "SOFTPARTICLES_ON", useSoftParticles);
+                CoreUtils.SetKeyword(material, "SOFTPARTICLES_ON", useSoftParticles);
             }
             // Camera fading
             var useCameraFading = false;
-            if (material.HasProperty("_CameraFadingEnabled"))
+            if (material.HasProperty("_CameraFadingEnabled") && isTransparent)
             {
                 useCameraFading = (material.GetFloat("_CameraFadingEnabled") > 0.0f);
                 if (useCameraFading)
@@ -380,16 +383,14 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             // Distortion
             if (material.HasProperty("_DistortionEnabled"))
             {
-                var useDistortion = (material.GetFloat("_DistortionEnabled") > 0.0f) &&
-                                     (BaseShaderGUI.SurfaceType) material.GetFloat("_Surface") !=
-                                     BaseShaderGUI.SurfaceType.Opaque;
-                BaseShaderGUI.SetKeyword(material, "_DISTORTION_ON", useDistortion);
+                var useDistortion = (material.GetFloat("_DistortionEnabled") > 0.0f) && isTransparent;
+                CoreUtils.SetKeyword(material, "_DISTORTION_ON", useDistortion);
                 if (useDistortion)
                     material.SetFloat("_DistortionStrengthScaled", material.GetFloat("_DistortionStrength") * 0.1f);
             }
             
             var useFading = (useSoftParticles || useCameraFading) && !hasZWrite;
-            BaseShaderGUI.SetKeyword(material, "_FADING_ON", useFading);
+            CoreUtils.SetKeyword(material, "_FADING_ON", useFading);
         }
     }
 } // namespace UnityEditor

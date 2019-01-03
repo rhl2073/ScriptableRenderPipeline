@@ -21,10 +21,8 @@ Shader "Lightweight Render Pipeline/Particles/Simple Lit"
         _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
         
-        [HideInInspector] _SpecSource("Specular Color Source", Float) = 0.0
         [HideInInspector] _SmoothnessSource("Smoothness Source", Float) = 0.0
         [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
-        [ToggleOff] _EnvironmentReflections("Glossy Reflections", Float) = 1.0
         
         // -------------------------------------
         // Particle specific
@@ -46,7 +44,6 @@ Shader "Lightweight Render Pipeline/Particles/Simple Lit"
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _Cull("__cull", Float) = 2.0
         
-        [ToogleOff] _ReceiveShadows("Receive Shadows", Float) = 1.0
         // Particle specific
         [HideInInspector] _ColorMode("_ColorMode", Float) = 0.0
         [HideInInspector] _BaseColorAddSubDiff("_ColorMode", Vector) = (0,0,0,0)
@@ -98,7 +95,8 @@ Shader "Lightweight Render Pipeline/Particles/Simple Lit"
             
             // -------------------------------------
             // Particle Keywords
-            #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
+            #pragma shader_feature _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
+            #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
             #pragma shader_feature _FLIPBOOKBLENDING_ON
             #pragma shader_feature _FADING_ON

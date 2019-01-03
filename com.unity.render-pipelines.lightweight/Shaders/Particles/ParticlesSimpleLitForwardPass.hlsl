@@ -150,7 +150,7 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     half3 normalTS = SampleNormalTS(uv, blendUv, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
     half4 albedo = SampleAlbedo(uv, blendUv, _BaseColor, input.color, projectedPosition, TEXTURE2D_PARAM(_BaseMap, sampler_BaseMap));
     half3 diffuse = AlphaModulate(albedo.rgb, albedo.a);
-    half alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
+    half alpha = albedo.a;
 #if defined(_EMISSION)
     half3 emission = BlendTexture(TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap), uv, blendUv) * _EmissionColor.rgb;
 #else

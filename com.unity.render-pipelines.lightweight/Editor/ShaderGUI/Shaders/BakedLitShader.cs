@@ -22,9 +22,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            material.shaderKeywords = null;
-            SetupMaterialBlendMode(material);
-            BakedLitGUI.SetMaterialKeywords(material);
+            SetMaterialKeywords(material);
         }
         
         // material main surface options
@@ -36,11 +34,11 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             // Use default labelWidth
             EditorGUIUtility.labelWidth = 0f;
 
-            // Detect any changes to the material
-            EditorGUI.BeginChangeCheck();
-            {
-                base.DrawSurfaceOptions(material);
-            }
+                 EditorGUI.BeginChangeCheck();
+                 {
+                     base.DrawSurfaceOptions(material);
+                 }       // Detect any changes to the material
+
             if (EditorGUI.EndChangeCheck())
             {
                 foreach (var obj in blendModeProp.targets)
@@ -53,7 +51,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         {
             base.DrawSurfaceInputs(material);
             BakedLitGUI.Inputs(shadingModelProperties, materialEditor);
-            DrawBaseTileOffset();
+            DrawTileOffset(materialEditor, baseMapProp);
         }
 
         public override void DrawAdvancedOptions(Material material)

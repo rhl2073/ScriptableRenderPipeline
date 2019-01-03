@@ -76,7 +76,8 @@ Shader "Lightweight Render Pipeline/Particles/Unlit"
             
             // -------------------------------------
             // Particle Keywords
-            #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
+            #pragma shader_feature _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
+            #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
             #pragma shader_feature _FLIPBOOKBLENDING_ON
             #pragma shader_feature _FADING_ON
@@ -87,7 +88,7 @@ Shader "Lightweight Render Pipeline/Particles/Unlit"
 
             #pragma vertex vertParticleUnlit
             #pragma fragment fragParticleUnlit
-
+            
             #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Particles/ParticlesUnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Particles/ParticlesUnlitForwardPass.hlsl"
             

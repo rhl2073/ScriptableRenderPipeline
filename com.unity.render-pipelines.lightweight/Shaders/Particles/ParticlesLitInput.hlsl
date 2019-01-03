@@ -53,7 +53,7 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
     // No distortion Support
     albedo = MixParticleColor(albedo, particleColor, colorAddSubDiff);
     
-    albedo.a = AlphaBlendAndTest(albedo.a, _Cutoff);
+    AlphaDiscard(albedo.a, _Cutoff);
     
  #if defined(SOFTPARTICLES_ON)
      ALBEDO_MUL -= 1 - SoftParticles(SOFT_PARTICLE_NEAR_FADE, SOFT_PARTICLE_INV_FADE_DISTANCE, projectedPosition);

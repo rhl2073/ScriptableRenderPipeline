@@ -93,7 +93,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         public static void Inputs(LitProperties properties, MaterialEditor materialEditor)
         {
             DoMetallicSpecularArea(properties, materialEditor);
-            BaseShaderGUI.DoNormalArea(materialEditor, properties.bumpMapProp, properties.bumpScaleProp);
+            BaseShaderGUI.DrawNormalArea(materialEditor, properties.bumpMapProp, properties.bumpScaleProp);
 
             if (properties.occlusionMap != null)
             {
@@ -151,7 +151,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             return SmoothnessMapChannel.SpecularMetallicAlpha;
         }
 
-        public static void SetMaterialKeywords(Material material, LitProperties properties)
+        public static void SetMaterialKeywords(Material material)
         {
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
@@ -176,8 +176,6 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
 
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", hasGlossMap);
 
-            CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
-
             if (material.HasProperty("_SpecularHighlights"))
                 CoreUtils.SetKeyword(material, "_SPECULARHIGHLIGHTS_OFF",
                     material.GetFloat("_SpecularHighlights") == 0.0f);
@@ -186,17 +184,6 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                     material.GetFloat("_EnvironmentReflections") == 0.0f);
             if (material.HasProperty("_OcclusionMap"))
                 CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
-
-            if (material.HasProperty("_ReceiveShadows"))
-                CoreUtils.SetKeyword(material, "_RECEIVE_SHADOWS_OFF", material.GetFloat("_ReceiveShadows") == 0.0f);
-
-            // A material's GI flag internally keeps track of whether emission is enabled at all, it's enabled but has no effect
-            // or is enabled and may be modified at runtime. This state depends on the values of the current flag and emissive color.
-            // The fixup routine makes sure that the material is in the correct state if/when changes are made to the mode or color.
-            MaterialEditor.FixupEmissiveFlag(material);
-            bool shouldEmissionBeEnabled =
-                (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
-            CoreUtils.SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
 
             if (material.HasProperty("_SmoothnessTextureChannel"))
             {

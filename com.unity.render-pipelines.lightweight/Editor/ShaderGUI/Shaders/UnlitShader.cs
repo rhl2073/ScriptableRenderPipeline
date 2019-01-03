@@ -11,8 +11,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            material.shaderKeywords = null;
-            SetupMaterialBlendMode(material);
+            SetMaterialKeywords(material);
         }
         
         // material main surface options
@@ -40,7 +39,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         public override void DrawSurfaceInputs(Material material)
         {
             base.DrawSurfaceInputs(material);
-            DrawBaseTileOffset();
+            DrawTileOffset(materialEditor, baseMapProp);
         }
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)

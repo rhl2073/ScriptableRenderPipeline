@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_PARTICLES_PBR_INCLUDED
-#define LIGHTWEIGHT_PARTICLES_PBR_INCLUDED
+#ifndef LIGHTWEIGHT_PARTICLES_UNLIT_INPUT_INCLUDED
+#define LIGHTWEIGHT_PARTICLES_UNLIT_INPUT_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Particles.hlsl"
 
@@ -39,6 +39,8 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
     colorAddSubDiff = _BaseColorAddSubDiff;
 #endif
     albedo = MixParticleColor(albedo, particleColor, colorAddSubDiff);
+    
+    AlphaDiscard(albedo.a, _Cutoff);
     
  #if defined(SOFTPARTICLES_ON)
      ALBEDO_MUL *= SoftParticles(SOFT_PARTICLE_NEAR_FADE, SOFT_PARTICLE_INV_FADE_DISTANCE, projectedPosition);

@@ -59,25 +59,12 @@ half CameraFade(float near, float far, float4 projection)
     return saturate((thisZ - near) * far);
 }
 
-// Alpha blend and test - returns the alpha value based on the the materials settings
-half AlphaBlendAndTest(half alpha, half cutoff)
-{
-//#if defined(_ALPHABLEND_ON) || defined(_ALPHAPREMULTIPLY_ON) || defined(_ALPHAOVERLAY_ON)
-    half result = alpha;
-//#else
-    //half result = 1.0h;
-//#endif
-    AlphaDiscard(alpha, cutoff, 0.0001h);
-
-    return result;
-}
-
 half3 AlphaModulate(half3 albedo, half alpha)
 {
 #if defined(_ALPHAMODULATE_ON)
     return lerp(half3(1.0h, 1.0h, 1.0h), albedo, alpha);
 #else
-    return albedo;
+    return albedo * alpha;
 #endif
 }
 
@@ -85,7 +72,7 @@ half3 Distortion(float4 baseColor, float3 normal, half strength, half blend, flo
 {
     float2 screenUV = (projection.xy / projection.w) + normal.xy * strength * baseColor.a;
     float4 Distortion = SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, screenUV);
-    return lerp(Distortion, baseColor.rgb, saturate(baseColor.a - blend));
+    return lerp(Distortion.rgb, baseColor.rgb, saturate(baseColor.a - blend));
 }
 
 // Sample a texture and do blending for texture sheet animation if needed
