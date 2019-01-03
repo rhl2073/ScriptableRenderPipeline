@@ -16,7 +16,7 @@ void VelPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float depth = SampleCameraDepth(dispatchThreadId);
 
 #if SKIP_PREPPING_IF_NOT_NEEDED
-    if (WaveActiveAnyTrue(any(velocity > _MinVelThreshold)))
+    if (WaveActiveAnyTrue(any(velocity != 0.0f)))
     {
 #endif
         PositionInputs posInput = GetPositionInput_Stereo(dispatchThreadId.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
