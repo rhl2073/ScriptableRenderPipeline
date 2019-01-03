@@ -11,10 +11,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public static string InputsText = "Surface Inputs";
 
-            public static GUIContent colorText = new GUIContent("Color", "Color");
+            public static GUIContent colorText = new GUIContent("Color", " Albedo (RGB) and Transparency (A).");
 
             public static string emissiveLabelText = "Emission Inputs";
-            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");            
+            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive Color (RGB).");            
         }
 
         protected MaterialProperty color = null;

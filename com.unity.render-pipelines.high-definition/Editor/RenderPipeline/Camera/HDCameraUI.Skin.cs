@@ -14,9 +14,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         const string msaaWarningMessage = "Manual MSAA target set with deferred rendering. This will lead to undefined behavior.";
 
-        static readonly GUIContent clearModeContent = CoreEditorUtils.GetContent("Clear Mode|The Camera clears the screen to selected mode.");
-        static readonly GUIContent backgroundColorContent = CoreEditorUtils.GetContent("Background Color|The BackgroundColor used to clear the screen when selecting BackgrounColor before rendering.");
-        static readonly GUIContent clearDepthContent = CoreEditorUtils.GetContent("ClearDepth|The Camera clears the depth buffer before rendering.");
+        static readonly GUIContent clearModeContent = CoreEditorUtils.GetContent("Clear Mode|The Clear Mode HDRP Cameras use to clear the screen.");
+        static readonly GUIContent backgroundColorContent = CoreEditorUtils.GetContent("Background Color|The color HDRP uses to clear the screen when you set Clear Mode to Background Color.");
+        static readonly GUIContent clearDepthContent = CoreEditorUtils.GetContent("Clear Depth|The Camera clears the depth buffer before rendering.");
         static readonly GUIContent cullingMaskContent = CoreEditorUtils.GetContent("Culling Mask");
         static readonly GUIContent volumeLayerMaskContent = CoreEditorUtils.GetContent("Volume Layer Mask");
         static readonly GUIContent volumeAnchorOverrideContent = CoreEditorUtils.GetContent("Volume Anchor Override");
@@ -24,17 +24,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static readonly GUIContent projectionContent = CoreEditorUtils.GetContent("Projection|How the Camera renders perspective.\n\nChoose Perspective to render objects with perspective.\n\nChoose Orthographic to render objects uniformly, with no sense of perspective.");
         static readonly GUIContent sizeContent = CoreEditorUtils.GetContent("Size");
-        static readonly GUIContent fieldOfViewContent = CoreEditorUtils.GetContent("Field of View|The width of the Camera’s view angle, measured in degrees along the local Y axis.");
-        static readonly GUIContent nearPlaneContent = CoreEditorUtils.GetContent("Near|The closest point relative to the camera that drawing will occur.");
-        static readonly GUIContent farPlaneContent = CoreEditorUtils.GetContent("Far|The furthest point relative to the camera that drawing will occur.");
+        static readonly GUIContent fieldOfViewContent = CoreEditorUtils.GetContent("Field of View|The height of the Camera’s view angle, measured in degrees along the local Y axis.");
+        static readonly GUIContent nearPlaneContent = CoreEditorUtils.GetContent("Near|The closest point relative to the camera that drawing occurs.");
+        static readonly GUIContent farPlaneContent = CoreEditorUtils.GetContent("Far|The furthest point relative to the camera that drawing occurs.");
 
-        static readonly GUIContent renderingPathContent = CoreEditorUtils.GetContent("Custom Frame Settings|Here, you must select which settings to override. If you do enable a specific override, the setting uses the pipeline default.");
+        static readonly GUIContent renderingPathContent = CoreEditorUtils.GetContent("Custom Frame Settings|Define the custom Frame Settings for this Camera to use.");
 
         static readonly GUIContent apertureContent = CoreEditorUtils.GetContent("Aperture");
         static readonly GUIContent shutterSpeedContent = CoreEditorUtils.GetContent("Shutter Speed (1 / x)");
         static readonly GUIContent isoContent = CoreEditorUtils.GetContent("ISO");
 
-        static readonly GUIContent viewportContent = CoreEditorUtils.GetContent("Viewport Rect|Four values that indicate where on the screen this camera view will be drawn. Measured in Viewport Coordinates (values 0–1).");
+        static readonly GUIContent viewportContent = CoreEditorUtils.GetContent("Viewport Rect|Four values that indicate where on the screen HDRP draws this Camera view. Measured in Viewport Coordinates (values 0 – 1).");
         static readonly GUIContent depthContent = CoreEditorUtils.GetContent("Depth");
 #if ENABLE_MULTIPLE_DISPLAYS
         static readonly GUIContent targetDisplayContent = CoreEditorUtils.GetContent("Target Display");
