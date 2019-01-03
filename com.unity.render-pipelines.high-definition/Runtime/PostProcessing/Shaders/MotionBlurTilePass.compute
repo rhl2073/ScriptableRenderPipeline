@@ -2,11 +2,10 @@
 
 #pragma kernel TileGenPass          GEN_PASS
 #pragma kernel TileNeighbourhood    NEIGHBOURHOOD_PASS
-#pragma kernel VelPrepAndTileMinMax PREP_AND_GEN VELOCITY_PREPPING GEN_PASS
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#define USE_WAVE_INTRINSICS   defined(SUPPORTS_WAVE_INTRINSICS) && PACKING && 1
+#define USE_WAVE_INTRINSICS         defined(SUPPORTS_WAVE_INTRINSICS) && PACKING && 1
 
 uint PackVel(float2 packedVel)
 {
@@ -44,10 +43,10 @@ float3 ParallelReduction(uint gid, uint threadIdx, float2 velocity)
     float velLength = VelocityLengthFromEncoded(velocity);
     float minVelLen = 0.0f;
     uint  maxVelPacked = 0.0f;
+
 #if USE_WAVE_INTRINSICS // This works only with multiple of 8 for TILE_SIZE.
 
     uint waveCount = ((TILE_SIZE * TILE_SIZE) / WAVE_SIZE);
-
 
     // Find min/max for this wave and store it in LDS. 
     float waveMin = WaveActiveMin(velLength);
@@ -103,43 +102,7 @@ float3 ParallelReduction(uint gid, uint threadIdx, float2 velocity)
 
 // TODO_FCC: Do dispatch indirect for the fast pass ? That would prevent us from jittering, but worth testing out if it is worth the loss of quality (can be an option)
 
-
-#ifdef PREP_AND_GEN
-[numthreads(TILE_SIZE, TILE_SIZE, 1)]
-void VelPrepAndTileMinMax(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
-{
-    uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
-
-
-    // --------------------------------------
-    // Velocity Prepping
-
-    float depth = SampleCameraDepth(dispatchThreadId);
-    PositionInputs posInput = GetPositionInput_Stereo(dispatchThreadId.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
-
-    float2 velocity = ComputeVelocity(posInput, dispatchThreadId.xy);
-    float2 encodedVel = EncodeVelocity(velocity);
-
-    // --------------------------------------
-    // Tile reduction
-
-    // Parallel reduction - find the max/min value for this tile
-    float3 minMaxVel = ParallelReduction(gid, threadIdx, velocity);
-    float minVelLength = minMaxVel.x;
-    float2 maxVel = minMaxVel.yz;
-
-    // --------------------------------------
-    // Writing out targets
-
-    _VelocityAndDepth[dispatchThreadId.xy] = float4(velocity, posInput.linearDepth, 0.0f);
-    if (threadIdx == 0)
-    {
-        _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, minMaxVel.x);
-    }
-
-}
-
-#elif GEN_PASS
+#ifdef GEN_PASS
 
 [numthreads(TILE_SIZE, TILE_SIZE,1)]
 void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID: SV_GroupID)
@@ -148,7 +111,6 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 
     float2 velocity = LOAD_TEXTURE2D(_VelocityAndDepth, id.xy).xy;
 
-    // Parallel reduction - find the max/min value for this tile
     float3 minMaxVel = ParallelReduction(gid, threadIdx, velocity);
     float minVelLength = minMaxVel.x;
     float2 maxVel = minMaxVel.yz;
