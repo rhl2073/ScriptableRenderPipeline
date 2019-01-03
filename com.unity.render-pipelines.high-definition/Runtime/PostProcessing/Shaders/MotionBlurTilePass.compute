@@ -8,10 +8,6 @@
 
 #define USE_WAVE_INTRINSICS   defined(SUPPORTS_WAVE_INTRINSICS) && PACKING && 1
 
-#if USE_WAVE_INTRINSICS
-groupshared float gs_minVel[((TILE_SIZE * TILE_SIZE) / WAVE_SIZE) + 1];
-groupshared uint gs_maxVel[((TILE_SIZE * TILE_SIZE) / WAVE_SIZE) + 1];
-
 uint PackVel(float2 packedVel)
 {
     // Most relevant bits contain the length of the velocity, so that we can sort directly on uint value.
@@ -26,11 +22,83 @@ float2 UnpackVel(uint packedVel)
     return outVel;
 }
 
+#if USE_WAVE_INTRINSICS
+
+#define LDS_SIZE  (TILE_SIZE * TILE_SIZE) / WAVE_SIZE
+
 #else
-groupshared float2 gs_minVel[((TILE_SIZE * TILE_SIZE))];
-groupshared float2 gs_maxVel[((TILE_SIZE * TILE_SIZE))];
+
+#define LDS_SIZE TILE_SIZE * TILE_SIZE
 
 #endif
+
+groupshared float gs_minVel[LDS_SIZE];
+groupshared uint gs_maxVel[LDS_SIZE];
+
+
+
+// Returns min vel length in x, max vel in zw
+float3 ParallelReduction(uint gid, uint threadIdx, float2 velocity)
+{
+    uint packedVel = PackVel(velocity);
+    float velLength = VelocityLengthFromEncoded(velocity);
+    float minVelLen = 0.0f;
+    uint  maxVelPacked = 0.0f;
+#if USE_WAVE_INTRINSICS // This works only with multiple of 8 for TILE_SIZE.
+
+    uint waveCount = ((TILE_SIZE * TILE_SIZE) / WAVE_SIZE);
+
+
+    // Find min/max for this wave and store it in LDS. 
+    float waveMin = WaveActiveMin(velLength);
+    uint waveMax = WaveActiveMax(packedVel);
+
+    uint waveIDInGroup = gid / WAVE_SIZE;
+    if (WaveIsFirstLane())
+    {
+        gs_minVel[waveIDInGroup] = waveMin;
+        gs_maxVel[waveIDInGroup] = waveMax;
+    }
+
+    // We have values for all the waves, let's sync. 
+    GroupMemoryBarrierWithGroupSync();
+
+    // Find min and max across waves.
+    minVelLen = gs_minVel[0];
+    maxVelPacked = gs_maxVel[0];
+    for (int i = 1; i < waveCount; ++i)
+    {
+        minVelLen = min(minVelLen, gs_minVel[i]);
+        maxVelPacked = max(maxVelPacked, gs_maxVel[i]);
+    }
+
+#else
+    gs_minVel[threadIdx] = velLength;
+    gs_maxVel[threadIdx] = packedVel;
+
+    GroupMemoryBarrierWithGroupSync();
+
+
+    UNITY_UNROLL
+    for (uint s = (TILE_SIZE * TILE_SIZE) / 2u; s > 0u; s >>= 1u)
+    {
+        if (threadIdx < s)
+        {
+            gs_minVel[threadIdx] = min(gs_minVel[threadIdx], gs_minVel[threadIdx + s]);
+            gs_maxVel[threadIdx] = max(gs_maxVel[threadIdx], gs_maxVel[threadIdx + s]);
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    maxVelPacked = gs_maxVel[0];
+    minVelLen = gs_minVel[0];
+
+#endif
+    float2 unpackedMaxVel = UnpackVel(maxVelPacked);
+    return float3(minVelLen, unpackedMaxVel);
+}
+
 
 
 // TODO_FCC: Do dispatch indirect for the fast pass ? That would prevent us from jittering, but worth testing out if it is worth the loss of quality (can be an option)
@@ -52,38 +120,21 @@ void VelPrepAndTileMinMax(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid
     float2 velocity = ComputeVelocity(posInput, dispatchThreadId.xy);
     float2 encodedVel = EncodeVelocity(velocity);
 
-
-    gs_minVel[threadIdx] = encodedVel;
-    gs_maxVel[threadIdx] = encodedVel;
-
-    GroupMemoryBarrierWithGroupSync();
-
     // --------------------------------------
     // Tile reduction
 
     // Parallel reduction - find the max/min value for this tile
-    UNITY_UNROLL
-        for (uint s = (TILE_SIZE * TILE_SIZE) / 2u; s > 0u; s >>= 1u)
-        {
-            if (threadIdx < s)
-            {
-                gs_minVel[threadIdx] = MinVel(gs_minVel[threadIdx], gs_minVel[threadIdx + s]);
-                gs_maxVel[threadIdx] = MaxVel(gs_maxVel[threadIdx], gs_maxVel[threadIdx + s]);
-            }
-
-            GroupMemoryBarrierWithGroupSync();
-        }
-
-    float2 minVel = gs_minVel[0];
-    float2 maxVel = gs_maxVel[0];
+    float3 minMaxVel = ParallelReduction(gid, threadIdx, velocity);
+    float minVelLength = minMaxVel.x;
+    float2 maxVel = minMaxVel.yz;
 
     // --------------------------------------
     // Writing out targets
 
-    _VelocityAndDepth[dispatchThreadId.xy] = float4(encodedVel, posInput.linearDepth, 0.0f);
+    _VelocityAndDepth[dispatchThreadId.xy] = float4(velocity, posInput.linearDepth, 0.0f);
     if (threadIdx == 0)
     {
-        _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, VelocityLengthFromEncoded(minVel));
+        _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, minMaxVel.x);
     }
 
 }
@@ -95,72 +146,17 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 {
     uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
 
-// This works only with multiple of 8 for TILE_SIZE.
-#if  (USE_WAVE_INTRINSICS)
-    uint waveCount = ((TILE_SIZE * TILE_SIZE) / WAVE_SIZE);
-
-	float2 vel = LOAD_TEXTURE2D(_VelocityAndDepth, id.xy).xy;
-    uint packedVel = PackVel(vel);
-
-    // Find min/max for this wave and store it in LDS. 
-    float waveMin = WaveActiveMin(VelocityLengthFromEncoded(vel));
-    uint waveMax = WaveActiveMax(packedVel);
-
-    uint waveIDInGroup = gid / WAVE_SIZE;
-    if (WaveIsFirstLane())
-    {
-        gs_minVel[waveIDInGroup] = waveMin;
-        gs_maxVel[waveIDInGroup] = waveMax;
-    }
-
-    // We have values for all the waves, let's sync. 
-    GroupMemoryBarrierWithGroupSync();
-
-    if (threadIdx == 0)
-    {
-        // Find min and max across waves.
-        float minVelLen = gs_minVel[0];
-        uint maxVel = gs_maxVel[0];
-        for (int i = 1; i < waveCount; ++i)
-        {
-            minVelLen = min(minVelLen, gs_minVel[i]);
-            maxVel = max(maxVel, gs_maxVel[i]);
-        }
-
-
-        float2 unpackedMaxVel = UnpackVel(maxVel);
-        _TileMinMaxVel[groupID.xy] = float3(unpackedMaxVel.x, unpackedMaxVel.y, minVelLen);
-    }
-#else
-
-    float2 vel = LOAD_TEXTURE2D(_VelocityAndDepth, id.xy).xy;
-
-    gs_minVel[threadIdx] = vel;
-    gs_maxVel[threadIdx] = vel;
-
-    GroupMemoryBarrierWithGroupSync();
+    float2 velocity = LOAD_TEXTURE2D(_VelocityAndDepth, id.xy).xy;
 
     // Parallel reduction - find the max/min value for this tile
-    UNITY_UNROLL
-    for (uint s = (TILE_SIZE * TILE_SIZE) / 2u; s > 0u; s >>= 1u)
-    {
-        if (threadIdx < s)
-        {
-            gs_minVel[threadIdx] = MinVel(gs_minVel[threadIdx], gs_minVel[threadIdx + s]);
-            gs_maxVel[threadIdx] = MaxVel(gs_maxVel[threadIdx], gs_maxVel[threadIdx + s]);
-        }
-
-        GroupMemoryBarrierWithGroupSync();
-    }
-
-    float2 minVel = gs_minVel[0];
-    float2 maxVel = gs_maxVel[0];
+    float3 minMaxVel = ParallelReduction(gid, threadIdx, velocity);
+    float minVelLength = minMaxVel.x;
+    float2 maxVel = minMaxVel.yz;
 
     if (threadIdx == 0)
     {
-        _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, VelocityLengthFromEncoded(minVel));
+        _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, minVelLength);
     }
-#endif
 
 }
 
