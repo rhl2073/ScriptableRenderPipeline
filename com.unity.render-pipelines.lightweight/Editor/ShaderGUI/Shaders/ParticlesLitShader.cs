@@ -24,14 +24,8 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         {
             if (material == null)
                 throw new ArgumentNullException("material");
-            
-            material.shaderKeywords = null; // Clear all keywords
 
-            SetupMaterialBlendMode(material);
-            //SetupMaterialWithBlendMode(material, (BlendMode)material.GetFloat("_Blend"));
-            ParticleGUI.SetupMaterialWithColorMode(material);
-            ParticleGUI.SetMaterialKeywords(material); // Set particle specific keywords
-            LitGUI.SetMaterialKeywords(material, litProperties); // Set lit specific 
+            SetMaterialKeywords(material, LitGUI.SetMaterialKeywords, ParticleGUI.SetMaterialKeywords);
         }
         
         public override void DrawSurfaceOptions(Material material)
@@ -52,7 +46,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         public override void DrawSurfaceInputs(Material material)
         {
             base.DrawSurfaceInputs(material);
-            LitGUI.Inputs(litProperties, materialEditor);
+            LitGUI.Inputs(litProperties, materialEditor, material);
             DrawEmissionProperties(material, true);
         }
         
@@ -67,17 +61,10 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             base.DrawAdvancedOptions(material);
         }
 
-        private static void NullThing(Rect rect){}
-
-        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        public override void OnOpenGUI(Material material)
         {
-            if (m_FirstTimeApply)
-            {
-                CacheRenderersUsingThisMaterial(materialEditor.target as Material);
-                m_FirstTimeApply = false;
-            }
-            
-            base.OnGUI(materialEditor, props);
+            CacheRenderersUsingThisMaterial(material);
+            base.OnOpenGUI(material);
         }
 
         void CacheRenderersUsingThisMaterial(Material material)

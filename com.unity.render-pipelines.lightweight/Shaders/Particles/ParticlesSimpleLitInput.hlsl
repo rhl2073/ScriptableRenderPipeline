@@ -45,6 +45,8 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
 #endif
     albedo = MixParticleColor(albedo, particleColor, colorAddSubDiff);
     
+    AlphaDiscard(albedo.a, _Cutoff);
+    
  #if defined(SOFTPARTICLES_ON)
      ALBEDO_MUL *= SoftParticles(SOFT_PARTICLE_NEAR_FADE, SOFT_PARTICLE_INV_FADE_DISTANCE, projectedPosition);
  #endif

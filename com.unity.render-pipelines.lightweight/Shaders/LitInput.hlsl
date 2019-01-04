@@ -12,7 +12,6 @@ half4 _SpecColor;
 half4 _EmissionColor;
 half _Cutoff;
 half _Smoothness;
-half _GlossMapScale;
 half _Metallic;
 half _BumpScale;
 half _OcclusionStrength;
@@ -35,9 +34,9 @@ half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
 #ifdef _METALLICSPECGLOSSMAP
     specGloss = SAMPLE_METALLICSPECULAR(uv);
     #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-        specGloss.a = albedoAlpha * _GlossMapScale;
+        specGloss.a = albedoAlpha * _Smoothness;
     #else
-        specGloss.a *= _GlossMapScale;
+        specGloss.a *= _Smoothness;
     #endif
 #else // _METALLICSPECGLOSSMAP
     #if _SPECULAR_SETUP
@@ -47,7 +46,7 @@ half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
     #endif
 
     #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-        specGloss.a = albedoAlpha * _GlossMapScale;
+        specGloss.a = albedoAlpha * _Smoothness;
     #else
         specGloss.a = _Smoothness;
     #endif

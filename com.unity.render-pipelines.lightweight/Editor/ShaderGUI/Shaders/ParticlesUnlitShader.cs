@@ -19,22 +19,15 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             shadingModelProperties = new BakedLitGUI.BakedLitProperties(properties);
             particleProps = new ParticleGUI.ParticleProperties(properties);
         }
-        
+
         public override void MaterialChanged(Material material)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
-            
-            material.shaderKeywords = null; // Clear all keywords
 
-            SetupMaterialBlendMode(material);
-            //SetupMaterialWithBlendMode(material, (BlendMode)material.GetFloat("_Blend"));
-            ParticleGUI.SetupMaterialWithColorMode(material);
-            SetMaterialKeywords(material);
-            ParticleGUI.SetMaterialKeywords(material); // Set particle specific keywords
-            BakedLitGUI.SetMaterialKeywords(material); // Set lit specific 
+            SetMaterialKeywords(material, null, ParticleGUI.SetMaterialKeywords);
         }
-        
+
         public override void DrawSurfaceOptions(Material material)
         {
             // Detect any changes to the material
@@ -49,7 +42,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                     MaterialChanged((Material)obj);
             }
         }
-        
+
         public override void DrawSurfaceInputs(Material material)
         {
             base.DrawSurfaceInputs(material);
@@ -68,18 +61,11 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             base.DrawAdvancedOptions(material);
         }
 
-        private static void NullThing(Rect rect){}
-
-        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        public override void OnOpenGUI(Material material)
         {
-            if (m_FirstTimeApply)
-            {
-                CacheRenderersUsingThisMaterial(materialEditor.target as Material);
-                m_FirstTimeApply = false;
-            }
-            
-            base.OnGUI(materialEditor, props);
-        }
+            CacheRenderersUsingThisMaterial(material);
+            base.OnOpenGUI(material);
+        } 
 
         void CacheRenderersUsingThisMaterial(Material material)
         {

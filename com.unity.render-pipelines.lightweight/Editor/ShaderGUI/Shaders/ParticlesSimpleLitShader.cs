@@ -24,13 +24,8 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         {
             if (material == null)
                 throw new ArgumentNullException("material");
-            
-            material.shaderKeywords = null; // Clear all keywords
 
-            SetupMaterialBlendMode(material);
-            ParticleGUI.SetupMaterialWithColorMode(material);
-            ParticleGUI.SetMaterialKeywords(material); // Set particle specific keywords
-            SimpleLitGUI.SetMaterialKeywords(material); // Set lit specific 
+            SetMaterialKeywords(material, SimpleLitGUI.SetMaterialKeywords, ParticleGUI.SetMaterialKeywords);
         }
         
         public override void DrawSurfaceOptions(Material material)
@@ -51,31 +46,26 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         public override void DrawSurfaceInputs(Material material)
         {
             base.DrawSurfaceInputs(material);
-            SimpleLitGUI.Inputs(shadingModelProperties, materialEditor);
+            SimpleLitGUI.Inputs(shadingModelProperties, materialEditor, material);
             DrawEmissionProperties(material, true);
         }
         
         public override void DrawAdvancedOptions(Material material)
         {
+            SimpleLitGUI.Advanced(shadingModelProperties);
             EditorGUI.BeginChangeCheck();
             {
                 materialEditor.ShaderProperty(particleProps.flipbookMode, ParticleGUI.Styles.flipbookMode);
                 ParticleGUI.FadingOptions(material, materialEditor, particleProps);
                 ParticleGUI.DoVertexStreamsArea(material, m_RenderersUsingThisMaterial);
             }
-            SimpleLitGUI.Advanced(shadingModelProperties);
             base.DrawAdvancedOptions(material);
         }
 
-        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        public override void OnOpenGUI(Material material)
         {
-            if (m_FirstTimeApply)
-            {
-                CacheRenderersUsingThisMaterial(materialEditor.target as Material);
-                m_FirstTimeApply = false;
-            }
-            
-            base.OnGUI(materialEditor, props);
+            CacheRenderersUsingThisMaterial(material);
+            base.OnOpenGUI(material);
         }
         
         void CacheRenderersUsingThisMaterial(Material material)

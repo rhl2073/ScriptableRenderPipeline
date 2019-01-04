@@ -21,10 +21,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            material.shaderKeywords = null;
-            SetupMaterialBlendMode(material);
-            
-            SimpleLitGUI.SetMaterialKeywords(material);
+            SetMaterialKeywords(material, SimpleLitGUI.SetMaterialKeywords);
         }
         
         // material main surface options
@@ -52,9 +49,9 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         public override void DrawSurfaceInputs(Material material)
         {
             base.DrawSurfaceInputs(material);
-            SimpleLitGUI.Inputs(shadingModelProperties, materialEditor);
+            SimpleLitGUI.Inputs(shadingModelProperties, materialEditor, material);
             DrawEmissionProperties(material, true);
-            DrawBaseTileOffset();
+            DrawTileOffset(materialEditor, baseMapProp);
         }
 
         public override void DrawAdvancedOptions(Material material)
