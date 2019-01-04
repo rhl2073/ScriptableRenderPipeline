@@ -1,5 +1,4 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
 #pragma kernel TileGenPass          GEN_PASS
 #pragma kernel TileNeighbourhood    NEIGHBOURHOOD_PASS
@@ -127,12 +126,6 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 
 #elif NEIGHBOURHOOD_PASS 
 
-void WriteMaxNeighbourhoodToBuffer(uint2 location, float3 data)
-{
-	uint flattenedLocation = location.y * _TileTargetSize.x + location.x;
-	_TileMaxNeighbourhoodBuff[flattenedLocation] = PackToR11G11B10f(data);
-}
-
 #define GUERTING2014 0
 
 // TODO_FCC: Clamp.
@@ -212,9 +205,8 @@ void TileNeighbourhood(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex,
     float minVel1 = Min3(v3.z, v4.z, v5.z);
     float minVel2 = Min3(v6.z, v7.z, v8.z);
 
-	float3 outVal = float3(MaxVel(maxVel0, MaxVel(maxVel1, maxVel2)), Min3(minVel0, minVel1, minVel2));
-    _TileMaxNeighbourhood[id.xy] = outVal;
-	WriteMaxNeighbourhoodToBuffer(id.xy, outVal);
+
+    _TileMaxNeighbourhood[id.xy] = float3(MaxVel(maxVel0, MaxVel(maxVel1, maxVel2)), Min3(minVel0, minVel1, minVel2)) ;
 #endif
 }
 

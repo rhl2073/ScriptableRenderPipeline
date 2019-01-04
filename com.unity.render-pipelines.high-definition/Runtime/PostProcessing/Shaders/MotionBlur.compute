@@ -1,5 +1,4 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
 #pragma kernel MotionBlurCS
 
@@ -77,21 +76,6 @@ float2 GetTileUV(uint2 pixCoord)
     randomVals = 0;
 #endif
     return ((pixCoord / TILE_SIZE) + randomVals) * _TileTargetSize.zw;
-}
-
-#define SCALAR_LOAD defined(SUPPORTS_WAVE_INTRINSICS) && 0
-float3 SampleTileData(uint2 dispatchID)
-{
-	uint2 loc = dispatchID.xy / TILE_SIZE;
-
-#if SCALAR_LOAD
-	uint flatLocation = WaveReadLaneFirst(loc.y * _TileTargetSize.x + loc.x);
-	uint tileData = _TileMaxNeighbourhoodBuff[flatLocation];
-	return UnpackFromR11G11B10f(tileData);
-#endif
-
-	float2 tileUV = GetTileUV(dispatchID);
-	return SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0).xyz;
 }
 
 
@@ -185,7 +169,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 centralColor = _InputTexture[dispatchThreadId.xy].xyz;
 
     float2 tileUV = GetTileUV(dispatchThreadId.xy);
-	float3 tileMaxNeighbourhood = SampleTileData(dispatchThreadId.xy);
+    float3 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0f).xyz;
 
     // Get velocity in pixels extents.
     float2 maxVel = DecodeVelocityFromPacked(tileMaxNeighbourhood.xy);
@@ -274,7 +258,6 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
             float  centralDepth = velocityAndDepth.z;
 
             float4 accumulation = 0.0f;
-
             for (uint i = 0; i < stepCount; ++i)
             {
 #if GUERTIN2014_DOUBLE_DIR
@@ -308,7 +291,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
 #if DEBUG_VIEW == CUSTOM
-		colorAccumulation = tileMaxNeighbourhood;
+
 #endif
 
 
