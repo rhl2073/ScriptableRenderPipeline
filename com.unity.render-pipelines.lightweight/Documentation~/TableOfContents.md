@@ -13,5 +13,8 @@
   * [Simple Lit](simple-lit-shader.md)
   * [Baked Lit](baked-lit-shader.md)
   * [Unlit](unlit-shader.md)
+  * [Particles Lit](particles-lit.md)
+  * [Particles Simple Lit](particles-simple-lit.md)
+  * [Particles Unlit](particles-unlit.md)
   * [Upgrading shaders](upgrading-your-shaders.md)
 
