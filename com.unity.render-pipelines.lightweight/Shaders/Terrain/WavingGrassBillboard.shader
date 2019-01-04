@@ -10,7 +10,7 @@ Shader "Hidden/TerrainEngine/Details/BillboardWavingDoublePass" // Has to overri
     }
     SubShader
     {
-        Tags {"Queue" = "Geometry+200" "RenderType" = "GrassBillBoard" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline" }//"DisableBatching"="True"
+        Tags {"Queue" = "Geometry+200" "RenderType" = "GrassBillBoard" "IgnoreProjector" = "True" "RenderPipeline" = "LightweightPipeline" }//"DisableBatching"="True"
         Cull Off
         LOD 200
         AlphaTest Greater [_Cutoff]

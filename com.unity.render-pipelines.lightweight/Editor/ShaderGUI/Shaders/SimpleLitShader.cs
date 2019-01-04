@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         public override void DrawSurfaceInputs(Material material)
         {
             base.DrawSurfaceInputs(material);
-            SimpleLitGUI.Inputs(shadingModelProperties, materialEditor);
+            SimpleLitGUI.Inputs(shadingModelProperties, materialEditor, material);
             DrawEmissionProperties(material, true);
             DrawTileOffset(materialEditor, baseMapProp);
         }

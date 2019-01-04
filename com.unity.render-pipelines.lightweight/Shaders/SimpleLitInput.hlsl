@@ -24,9 +24,10 @@ half4 SampleSpecularSmoothness(half2 uv, half alpha, half4 specColor, TEXTURE2D_
 #endif
 
 #ifdef _GLOSSINESS_FROM_BASE_ALPHA
-    specularSmoothness.a = alpha;
-#endif
+    specularSmoothness.a = exp2(10 * alpha + 1);
+#else
     specularSmoothness.a = exp2(10 * specularSmoothness.a + 1);
+#endif
 
     return specularSmoothness;
 }

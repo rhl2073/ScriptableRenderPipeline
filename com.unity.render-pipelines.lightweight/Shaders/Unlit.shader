@@ -25,7 +25,7 @@ Shader "Lightweight Render Pipeline/Unlit"
     }
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline" }
+        Tags { "RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "LightweightPipeline" }
         LOD 100
 
         Blend [_SrcBlend][_DstBlend]

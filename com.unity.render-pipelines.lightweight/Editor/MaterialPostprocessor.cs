@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.LWRP
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            var upgradeLog = "Upgrading Following Materials:";
+            var upgradeLog = "LWRP Material log:";
             var upgradeCount = 0;
             
             foreach (var asset in importedAssets)
@@ -52,6 +52,7 @@ namespace UnityEditor.Rendering.LWRP
                 ShaderPathID id = ShaderUtils.GetEnumFromPath(material.shader.name);
                 var wasUpgraded = false;
                 var assetVersion = (AssetVersion)AssetDatabase.LoadAssetAtPath(asset, typeof(AssetVersion));
+                var debug = "\n" + material.name;
 
                 if (!assetVersion)
                 {
@@ -70,9 +71,8 @@ namespace UnityEditor.Rendering.LWRP
 
                     assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
                     AssetDatabase.AddObjectToAsset(assetVersion, asset);
+                    debug += " initialized.";
                 }
-
-                var debug = "\n" + material.name;
 
                 while (assetVersion.version < k_Upgraders.Length)
                 {
@@ -90,14 +90,13 @@ namespace UnityEditor.Rendering.LWRP
                 }
             }
             if(upgradeCount > 0)
-                Debug.LogWarning(upgradeLog);
+                Debug.Log(upgradeLog);
         }
 
         static readonly Action<Material, ShaderPathID>[] k_Upgraders = { };
 
         static void InitializeLatest(Material material, ShaderPathID id)
         {
-            Debug.Log("Initializing: " + material.name);
             
         }
 

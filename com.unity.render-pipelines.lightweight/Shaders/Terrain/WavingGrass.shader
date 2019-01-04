@@ -10,7 +10,7 @@ Shader "Hidden/TerrainEngine/Details/WavingDoublePass" // Has to override the in
     }
     SubShader
     {
-        Tags {"Queue" = "Geometry+200" "RenderType" = "Grass" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline" }//"DisableBatching"="True"
+        Tags {"Queue" = "Geometry+200" "RenderType" = "Grass" "IgnoreProjector" = "True" "RenderPipeline" = "LightweightPipeline" }//"DisableBatching"="True"
         Cull Off
         LOD 200
         AlphaTest Greater [_Cutoff]

@@ -29,11 +29,11 @@ namespace UnityEditor
             SpecularAlpha
         }
 
-        public enum Culling
+        public enum RenderFace
         {
-            BackFace = 2,
-            FrontFace = 1,
-            None = 0
+            Front = 2,
+            Back = 1,
+            Both = 0
         }
 
         protected class Styles
@@ -45,8 +45,7 @@ namespace UnityEditor
             
             public static readonly GUIContent surfaceType = new GUIContent("Surface Type", "Tooltip");
             public static readonly GUIContent blendingMode = new GUIContent("Blending Mode", "Tooltip");
-            public static readonly GUIContent twoSidedText = new GUIContent("Double-sided", "Enable to render both front and back faces, disable to cull the back faces");
-            public static readonly GUIContent cullingText = new GUIContent("Face Culling", "Choose the culling option for this material.");
+            public static readonly GUIContent cullingText = new GUIContent("Render Face", "Choose the culling option for this material.");
             public static readonly GUIContent alphaClipText = new GUIContent("Alpha Clipping", "Enables Alpha Clipping on this material, this uses the alpha value of the Base Map and Base Color, use the threshold to adjust the bias.");
             public static readonly GUIContent alphaClipThresholdText = new GUIContent("Threshold", "Acts as an offset for the alpha clip");
             public static readonly GUIContent receiveShadowText = new GUIContent("Receive Shadows", "Enables this material to receive shadows if there is at least one shadow casting light affecting it.");
@@ -220,12 +219,12 @@ namespace UnityEditor
                 DoPopup(Styles.blendingMode, blendModeProp, Enum.GetNames(typeof(BlendMode)));
 
             EditorGUI.BeginChangeCheck();
-            var culling = (Culling)cullingProp.floatValue;
-            culling = (Culling)EditorGUILayout.EnumPopup(Styles.cullingText, culling);
+            var culling = (RenderFace)cullingProp.floatValue;
+            culling = (RenderFace)EditorGUILayout.EnumPopup(Styles.cullingText, culling);
             if (EditorGUI.EndChangeCheck())
             {
                 cullingProp.floatValue = (float)culling;
-                material.doubleSidedGI = culling != Culling.BackFace;
+                material.doubleSidedGI = culling != RenderFace.Front;
             }
 
             EditorGUI.BeginChangeCheck();
@@ -461,10 +460,30 @@ namespace UnityEditor
             if (EditorGUI.EndChangeCheck())
             {
                 materialEditor.RegisterPropertyChangeUndo(label.text);
-                property.floatValue = (float)mode;
+                property.floatValue = mode;
             }
 
             EditorGUI.showMixedValue = false;
+        }
+        
+        // Helper to show texture and color properties
+        public static Rect TextureColorProps(MaterialEditor materialEditor, GUIContent label, MaterialProperty textureProp, MaterialProperty colorProp, bool hdr = false)
+        {
+            Rect rect = EditorGUILayout.GetControlRect();
+            materialEditor.TexturePropertyMiniThumbnail(rect, textureProp, label.text, label.tooltip);
+
+            if (colorProp != null)
+            {
+                int indentLevel = EditorGUI.indentLevel;
+                EditorGUI.indentLevel = 0;
+                Rect rectAfterLabel = new Rect(rect.x + EditorGUIUtility.labelWidth, rect.y,
+                    EditorGUIUtility.fieldWidth, EditorGUIUtility.singleLineHeight);
+                colorProp.colorValue = EditorGUI.ColorField(rectAfterLabel, GUIContent.none, colorProp.colorValue, true,
+                    false, hdr);
+                EditorGUI.indentLevel = indentLevel;
+            }
+
+            return rect;
         }
 
         // Copied from shaderGUI as it is a protected function in an abstract class, unavailable to others
@@ -485,7 +504,7 @@ namespace UnityEditor
             }
             if (propertyIsMandatory)
                 throw new ArgumentException("Could not find MaterialProperty: '" + propertyName + "', Num properties: " + (object) properties.Length);
-            return (MaterialProperty) null;
+            return null;
         }
 
         #endregion
