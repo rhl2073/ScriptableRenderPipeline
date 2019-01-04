@@ -12,23 +12,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public static string InputsText = "Surface Inputs";
 
-            public static GUIContent baseColorText = new GUIContent("Base Map", "BaseColor (RGB) and Opacity (A)");
+            public static GUIContent baseColorText = new GUIContent("Base Map", "BaseColor (RGB) and Opacity (A).");
 
-            public static GUIContent metallicText = new GUIContent("Metallic", "Metallic scale factor");
-            public static GUIContent smoothnessText = new GUIContent("Smoothness", "Smoothness scale factor");
-            public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Smoothness remapping");
-            public static GUIContent aoRemappingText = new GUIContent("AmbientOcclusion Remapping", "AmbientOcclusion remapping");
-            public static GUIContent maskMapSText = new GUIContent("Mask Map", "Mask map - Metallic (R), Ambient occlusion (G), Detail mask (B), Smoothness (A)");
-            public static GUIContent maskMapSpecularText = new GUIContent("Mask Map", "Mask map - Ambient occlusion (G), Detail mask (B), Smoothness (A)");
+            public static GUIContent metallicText = new GUIContent("Metallic", "Scale factor for the Material's Metallic effect.");
+            public static GUIContent smoothnessText = new GUIContent("Smoothness", "Scale factor for the Material's Smoothness.");
+            public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Remaps the Material's Smoothness.");
+            public static GUIContent aoRemappingText = new GUIContent("AmbientOcclusion Remapping", "Remaps the Materials's Ambient Occlusion effect.");
+            public static GUIContent maskMapSText = new GUIContent("Mask Map", "Mask map - Metallic (R), Ambient occlusion (G), Detail mask (B), Smoothness (A).");
+            public static GUIContent maskMapSpecularText = new GUIContent("Mask Map", "Mask map - Ambient occlusion (G), Detail mask (B), Smoothness (A).");
 
             public static GUIContent normalMapSpaceText = new GUIContent("Normal Map space", "");
-            public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
-            public static GUIContent normalMapOSText = new GUIContent("Normal Map OS", "Normal Map (BC7/DXT1/RGB)");
-            public static GUIContent bentNormalMapText = new GUIContent("Bent normal map", "Use only with indirect diffuse lighting (Lightmap/lightprobe) - Cosine weighted Bent Normal Map (average unoccluded direction) (BC7/BC5/DXT5(nm))");
-            public static GUIContent bentNormalMapOSText = new GUIContent("Bent normal map OS", "Use only with indirect diffuse lighting (Lightmap/lightprobe) - Bent Normal Map (BC7/DXT1/RGB)");
+            public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm)).");
+            public static GUIContent normalMapOSText = new GUIContent("Normal Map OS", "Normal Map (BC7/DXT1/RGB).");
+            public static GUIContent bentNormalMapText = new GUIContent("Bent normal map", "Use only with indirect diffuse lighting (Lightmaps and Light Probes) - Cosine weighted Bent Normal Map (BC7/BC5/DXT5(nm)).");
+            public static GUIContent bentNormalMapOSText = new GUIContent("Bent normal map OS", "Use only with indirect diffuse lighting (Lightmaps and Light Probes) - Bent Normal Map (BC7/DXT1/RGB).");
 
             // Height
-            public static GUIContent heightMapText = new GUIContent("Height Map", "Height Map (R).\nFor floating point textures, min, max and base value should be 0, 1 and 0.");
+            public static GUIContent heightMapText = new GUIContent("Height Map", "Height Map (R).\nFor floating point textures, min, max, and base value should be 0, 1, and 0.");
             public static GUIContent heightMapCenterText = new GUIContent("Base", "Base of the heightmap in the texture (between 0 and 1)");
             public static GUIContent heightMapMinText = new GUIContent("Min (cm)", "Minimum value in the heightmap (in centimeters)");
             public static GUIContent heightMapMaxText = new GUIContent("Max (cm)", "Maximum value in the heightmap (in centimeters)");

@@ -45,10 +45,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float iso = 400f;
         public FlipYMode flipYMode;
         
-        [Tooltip("Skips rendering settings to directly render in fullscreen (Useful for video)")]
+        [Tooltip("Skips rendering settings to directly render in fullscreen (Useful for video).")]
         public bool fullscreenPassthrough = false;
 
-        [Tooltip("Allows you to override the default settings for this Renderer")]
+        [Tooltip("Allows you to override the default settings for this Renderer.")]
         public bool customRenderingSettings = false;
 
         // Event used to override HDRP rendering for this particular camera.
