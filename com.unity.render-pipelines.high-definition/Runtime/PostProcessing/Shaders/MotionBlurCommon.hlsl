@@ -19,9 +19,12 @@ Texture2D<float3> _TileMinMaxVel;
 
 #if NEIGHBOURHOOD_PASS
 RWTexture2D<float3> _TileMaxNeighbourhood;
+RWStructuredBuffer<uint> _TileMaxNeighbourhoodBuff;
 #else
 Texture2D<float3> _TileMaxNeighbourhood;
+StructuredBuffer<uint> _TileMaxNeighbourhoodBuff;
 #endif
+
 
 
 CBUFFER_START(MotionBlurUniformBuffer)
