@@ -50,6 +50,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandle m_InternalLogLut; // ARGBHalf
         readonly HableCurve m_HableCurve;
 
+        // Motion Blur Data
+        ComputeBuffer m_MotionBlurTileNeighbourhood;
+
         // Prefetched components (updated on every frame)
         Exposure m_Exposure;
         DepthOfField m_DepthOfField;
@@ -173,8 +176,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.SafeRelease(m_BokehIndirectCmd);
             CoreUtils.SafeRelease(m_NearBokehTileList);
             CoreUtils.SafeRelease(m_FarBokehTileList);
+            CoreUtils.SafeRelease(m_MotionBlurTileNeighbourhood);
 
-            m_EmptyExposureTexture      = null;
+            m_EmptyExposureTexture = null;
             m_TempTexture1024           = null;
             m_TempTexture32             = null;
             m_ExposureCurveTexture      = null;
@@ -186,6 +190,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_BokehIndirectCmd          = null;
             m_NearBokehTileList         = null;
             m_FarBokehTileList          = null;
+            m_MotionBlurTileNeighbourhood = null;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -203,7 +208,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Exposure                  = stack.GetComponent<Exposure>();
             m_DepthOfField              = stack.GetComponent<DepthOfField>();
             m_MotionBlur                = stack.GetComponent<MotionBlur>();
-            m_PaniniProjection = stack.GetComponent<PaniniProjection>();
+            m_PaniniProjection          = stack.GetComponent<PaniniProjection>();
             m_Bloom                     = stack.GetComponent<Bloom>();
             m_ChromaticAberration       = stack.GetComponent<ChromaticAberration>();
             m_LensDistortion            = stack.GetComponent<LensDistortion>();
@@ -1243,6 +1248,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             cs = m_Resources.shaders.motionBlurTileGenCS;
             kernel = cs.FindKernel("TileNeighbourhood");
+
+            ValidateComputeBuffer(ref m_MotionBlurTileNeighbourhood, tileTexWidth * tileTexHeight, sizeof(uint));
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhoodBuff, m_MotionBlurTileNeighbourhood);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
+
+
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
             threadGroupX = (tileTexWidth + 7) / 8;
@@ -1253,6 +1264,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Blur kernel
             cs = m_Resources.shaders.motionBlurCS;
             kernel = cs.FindKernel("MotionBlurCS");
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhoodBuff, m_MotionBlurTileNeighbourhood);
+
             cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
