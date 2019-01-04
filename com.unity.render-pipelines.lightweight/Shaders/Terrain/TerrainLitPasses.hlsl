@@ -263,7 +263,7 @@ float4 ShadowPassVertex(AttributesLean v) : SV_POSITION
     TerrainInstancing(v.position, v.normalOS);
 
     float3 positionWS = TransformObjectToWorld(v.position.xyz);
-    float3 normalWS = TransformObjectToWorldDir(v.normalOS);
+    float3 normalWS = TransformObjectToWorldNormal(v.normalOS);
 
     float4 clipPos = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
 

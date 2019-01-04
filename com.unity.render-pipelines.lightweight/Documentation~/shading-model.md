@@ -43,8 +43,6 @@
 
     In this Simple shading model, Materials reflect diffuse and specular light, and there’s no correlation between the two. The amount of diffuse and specular light reflected from Materials depends on the properties you select for the Material and the total reflected light can therefore exceed the total incoming light. Specular reflection varies only with camera direction.
 
-    [img showing diffuse and specular reflection]
-
     Light attenuation is only affected by the light intensity.
 
     The following LWRP Shaders use Simple Shading:
@@ -55,8 +53,6 @@
     ## Baked Lit shading 
 
     The Baked Lit shading model doesn’t have real-time lighting. Materials can receive [baked lighting](https://docs.unity3d.com/Manual/LightMode-Baked.html) from either [lightmaps](https://docs.unity3d.com/Manual/Lightmapping.html) or [Light Probes](<https://docs.unity3d.com/Manual/LightProbes.html>). This adds some depth to your Scenes at a small performance cost. Games with this shading model can run on less powerful platforms. 
-
-    [img showing unlit objects]
 
     The LWRP Baked Lit shader is the only shader that uses the Baked Lit shading model.
 
