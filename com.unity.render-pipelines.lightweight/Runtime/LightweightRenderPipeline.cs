@@ -134,7 +134,8 @@ namespace UnityEngine.Rendering.LWRP
                 return;
             }
 
-            if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
+            ScriptableCullingParameters cullingParameters;
+            if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out cullingParameters))
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderCameraTag);
@@ -142,7 +143,9 @@ namespace UnityEngine.Rendering.LWRP
             {
                 ScriptableRenderer renderer = pipelineInstance.renderer;
                 var settings = asset;
-                InitializeCameraData(settings, camera, out var cameraData);
+
+                CameraData cameraData;
+                InitializeCameraData(settings, camera, out cameraData);
                 SetupPerCameraShaderConstants(cameraData);
 
                 if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
@@ -165,8 +168,9 @@ namespace UnityEngine.Rendering.LWRP
 
                 var cullResults = context.Cull(ref cullingParameters);
 
+                RenderingData renderingData;
                 InitializeRenderingData(settings, ref cameraData, ref cullResults,
-                    renderer.maxVisibleAdditionalLights, renderer.maxPerObjectAdditionalLights, out var renderingData);
+                    renderer.maxVisibleAdditionalLights, renderer.maxPerObjectAdditionalLights, out renderingData);
 
                 renderer.Clear();
 
