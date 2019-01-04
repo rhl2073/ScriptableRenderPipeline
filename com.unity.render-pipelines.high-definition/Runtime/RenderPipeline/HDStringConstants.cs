@@ -28,6 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly string s_MeshDecalsAOSStr = "DBufferMesh_AOS";
         public static readonly string s_MeshDecalsMAOSStr = "DBufferMesh_MAOS";
         public static readonly string s_MeshDecals3RTStr = "DBufferMesh_3RT";
+        public static readonly string s_ShaderGraphMeshDecals = "ShaderGraph_DBufferMesh";
 
         // ShaderPass name
         public static readonly ShaderTagId s_EmptyName = new ShaderTagId(s_EmptyStr);
@@ -51,6 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly ShaderTagId s_MeshDecalsAOSName = new ShaderTagId(s_MeshDecalsAOSStr);
         public static readonly ShaderTagId s_MeshDecalsMAOSName = new ShaderTagId(s_MeshDecalsMAOSStr);
         public static readonly ShaderTagId s_MeshDecals3RTName = new ShaderTagId(s_MeshDecals3RTStr);
+        public static readonly ShaderTagId s_ShaderGraphMeshDecalsName = new ShaderTagId(s_ShaderGraphMeshDecals);
 
         // Legacy name
         public static readonly ShaderTagId s_AlwaysName = new ShaderTagId("Always");
@@ -76,6 +78,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ShadowAtlasSize = Shader.PropertyToID("_ShadowAtlasSize");
         public static readonly int _CascadeShadowAtlasSize = Shader.PropertyToID("_CascadeShadowAtlasSize");
         public static readonly int _CascadeShadowCount = Shader.PropertyToID("_CascadeShadowCount");
+
+        // Moment shadow map data
+        public static readonly int _MomentShadowAtlas = Shader.PropertyToID("_MomentShadowAtlas");
+        public static readonly int _MomentShadowmapSlotST = Shader.PropertyToID("_MomentShadowmapSlotST");
+        public static readonly int _MomentShadowmapSize = Shader.PropertyToID("_MomentShadowmapSize");
+        public static readonly int _SummedAreaTableInputInt = Shader.PropertyToID("_SummedAreaTableInputInt");
+        public static readonly int _SummedAreaTableOutputInt = Shader.PropertyToID("_SummedAreaTableOutputInt");
+        public static readonly int _SummedAreaTableInputFloat = Shader.PropertyToID("_SummedAreaTableInputFloat");
+        public static readonly int _IMSKernelSize = Shader.PropertyToID("_IMSKernelSize");
 
         public static readonly int g_LayeredSingleIdxBuffer = Shader.PropertyToID("g_LayeredSingleIdxBuffer");
         public static readonly int _EnvLightIndexShift = Shader.PropertyToID("_EnvLightIndexShift");
@@ -555,5 +566,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _BlueNoiseTexture               = Shader.PropertyToID("_BlueNoiseTexture");
         public static readonly int _DitherParams                   = Shader.PropertyToID("_DitherParams");
         public static readonly int _UVTransform                    = Shader.PropertyToID("_UVTransform");
+
+        // Motion Blur. TODO_FCC: Rename to MotionBlur specific. 
+        public static readonly int _VelocityAndDepth               = Shader.PropertyToID("_VelocityAndDepth");
+        public static readonly int _TileVelMinMax                  = Shader.PropertyToID("_TileMinMaxVel");
+        public static readonly int _TileMaxNeighbourhood           = Shader.PropertyToID("_TileMaxNeighbourhood");
+        public static readonly int _TileTargetSize                 = Shader.PropertyToID("_TileTargetSize");
+        public static readonly int _MotionBlurSampleCount          = Shader.PropertyToID("_SampleCount");
+        public static readonly int _MotionBlurParams               = Shader.PropertyToID("_MotionBlurParams0");
+        public static readonly int _MotionBlurIntensity            = Shader.PropertyToID("_MotionBlurIntensity");
+        public static readonly int _PrevVPMatrixNoTranslation      = Shader.PropertyToID("_PrevVPMatrixNoTranslation");
+
     }
 }

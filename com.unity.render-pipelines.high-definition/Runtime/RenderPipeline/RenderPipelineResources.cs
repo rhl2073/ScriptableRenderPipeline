@@ -84,6 +84,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader shadowClearPS;
             public ComputeShader shadowBlurMomentsCS;
             public Shader debugHDShadowMapPS;
+            public ComputeShader momentShadowsCS;
 
             // Decal
             public Shader decalNormalBufferPS;
@@ -115,6 +116,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader depthOfFieldGatherCS;
             public ComputeShader depthOfFieldCombineCS;
             public ComputeShader paniniProjectionCS;
+            public ComputeShader motionBlurVelocityPrepCS;
+            public ComputeShader motionBlurTileGenCS;
+            public ComputeShader motionBlurCS;
             public ComputeShader bloomPrefilterCS;
             public ComputeShader bloomBlurCS;
             public ComputeShader bloomUpsampleCS;
@@ -246,6 +250,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 shadowClearPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowClear.shader"),
                 shadowBlurMomentsCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowBlurMoments.compute"),
                 debugHDShadowMapPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/DebugDisplayHDShadowMap.shader"),
+                momentShadowsCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Shadow/MomentShadows.compute"),
 
                 // Decal
                 decalNormalBufferPS = Load<Shader>(HDRenderPipelinePath + "Material/Decal/DecalNormalBuffer.shader"),
@@ -276,6 +281,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 depthOfFieldTileMaxCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/DepthOfFieldTileMax.compute"),
                 depthOfFieldGatherCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/DepthOfFieldGather.compute"),
                 depthOfFieldCombineCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/DepthOfFieldCombine.compute"),
+                motionBlurTileGenCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/MotionBlurTilePass.compute"),
+                motionBlurCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/MotionBlur.compute"),
+                motionBlurVelocityPrepCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/MotionBlurVelocityPrep.compute"),
                 paniniProjectionCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/PaniniProjection.compute"),
                 bloomPrefilterCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomPrefilter.compute"),
                 bloomBlurCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomBlur.compute"),

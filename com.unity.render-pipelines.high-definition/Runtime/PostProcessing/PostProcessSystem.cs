@@ -45,13 +45,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Texture2D m_InternalSpectralLut;
 
         // Color grading data
-        const int k_LogLutSize = 33;
+        readonly int m_LutSize;
+        readonly RenderTextureFormat m_LutFormat;
         RTHandle m_InternalLogLut; // ARGBHalf
         readonly HableCurve m_HableCurve;
 
         // Prefetched components (updated on every frame)
         Exposure m_Exposure;
         DepthOfField m_DepthOfField;
+        MotionBlur m_MotionBlur;
         PaniniProjection m_PaniniProjection;
         Bloom m_Bloom;
         ChromaticAberration m_ChromaticAberration;
@@ -92,6 +94,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             useSafePath = SystemInfo.graphicsDeviceVendor
                 .ToLowerInvariant().Contains("intel");
 
+            // Project-wise LUT size for all grading operations - meaning that internal LUTs and
+            // user-provided LUTs will have to be this size
+            var settings = hdAsset.renderPipelineSettings.postProcessSettings;
+            m_LutSize = settings.lutSize;
+            m_LutFormat = (RenderTextureFormat)settings.lutFormat;
+
             // Feature maps
             // Must be kept in sync with variants defined in UberPost.compute
             PushUberFeature(UberPostFeatureFlags.None);
@@ -108,11 +116,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_InternalLogLut = RTHandles.Alloc(
                 name: "Color Grading Log Lut",
                 dimension: TextureDimension.Tex3D,
-                width: k_LogLutSize,
-                height: k_LogLutSize,
-                slices: k_LogLutSize,
+                width: m_LutSize,
+                height: m_LutSize,
+                slices: m_LutSize,
                 depthBufferBits: DepthBits.None,
-                colorFormat: RenderTextureFormat.ARGBHalf,
+                colorFormat: m_LutFormat,
                 filterMode: FilterMode.Bilinear,
                 wrapMode: TextureWrapMode.Clamp,
                 anisoLevel: 0,
@@ -194,6 +202,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var stack = VolumeManager.instance.stack;
             m_Exposure                  = stack.GetComponent<Exposure>();
             m_DepthOfField              = stack.GetComponent<DepthOfField>();
+            m_MotionBlur                = stack.GetComponent<MotionBlur>();
             m_PaniniProjection          = stack.GetComponent<PaniniProjection>();
             m_Bloom                     = stack.GetComponent<Bloom>();
             m_ChromaticAberration       = stack.GetComponent<ChromaticAberration>();
@@ -283,7 +292,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)
-                // TODO: Motion blur goes here
+                if (m_MotionBlur.IsActive() && camera.camera.cameraType == CameraType.Game)
+                {
+                    using (new ProfilingSample(cmd, "Motion Blur", CustomSamplerId.MotionBlur.GetSampler()))
+                    {
+                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                        DoMotionBlur(cmd, camera, source, destination);
+                        PoolSource(ref source, destination);
+                    }
+                }
 
                 // Panini projection is done as a fullscreen pass after all depth-based effects are
                 // done and before bloom kicks in
@@ -1165,6 +1182,120 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void DoMotionBlur(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
         {
+            // -----------------------------------------------------------------------------
+            // Temporary targets prep
+
+            const int tileSize = 32;        // Must match define on MotionBlurCommon - TODO_FCC: Set define from C#
+            // TODO_FCC: Round up the scale
+            int tileTexWidth = Mathf.CeilToInt(camera.actualWidth / tileSize);
+            int tileTexHeight = Mathf.CeilToInt(camera.actualHeight / tileSize);
+            Vector2 tileTexScale = new Vector2((float)tileTexWidth / camera.actualWidth, (float)tileTexHeight / camera.actualHeight);
+            Vector4 tileTargetSize = new Vector4(tileTexWidth, tileTexHeight, 1.0f / tileTexWidth, 1.0f / tileTexHeight);
+
+            // Need to change these factors.
+            RTHandle preppedVelocity = m_Pool.Get(Vector2.one, RenderTextureFormat.RGB111110Float);
+            RTHandle minMaxTileVel = m_Pool.Get(tileTexScale, RenderTextureFormat.RGB111110Float);
+            RTHandle maxTileNeigbourhood = m_Pool.Get(tileTexScale, RenderTextureFormat.RGB111110Float);
+
+            Vector4 motionBlurParams0 = new Vector4(
+                (new Vector2(camera.actualWidth, camera.actualHeight).magnitude),
+                m_MotionBlur.maxVelocity,
+                m_MotionBlur.minVelInPixels,
+                m_MotionBlur.tileMinMaxVelRatioForHighQuality
+            );
+
+            bool combinedPrepAndTile = (Application.platform == RuntimePlatform.XboxOne) && false;   // TODO_FCC: This only on scorpio actually... Also, it is quite messy. 
+
+            // -----------------------------------------------------------------------------
+            // Prep velocity
+
+            // - Move velocity to pixel space rather than world.
+            // - Pack normalized velocity and linear depth in R11G11B10
+            ComputeShader cs;
+            int kernel;
+            int threadGroupX;
+            int threadGroupY;
+            if (!combinedPrepAndTile)
+            {
+                cs = m_Resources.shaders.motionBlurVelocityPrepCS;
+                kernel = cs.FindKernel("VelPreppingCS");
+                threadGroupX = (camera.actualWidth + 7) / 8;
+                threadGroupY = (camera.actualHeight + 7) / 8;
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._MotionBlurIntensity, m_MotionBlur.intensity);
+                cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.prevViewProjMatrixNoCameraTrans);
+
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+            }
+
+
+            // -----------------------------------------------------------------------------
+            // Generate MinMax velocity tiles
+
+            // We store R11G11B10 with RG = Max vel and B = Min vel magnitude
+            if (!combinedPrepAndTile)
+            {
+                cs = m_Resources.shaders.motionBlurTileGenCS;
+                kernel = cs.FindKernel("TileGenPass");
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
+                threadGroupX = (camera.actualWidth + (tileSize - 1)) / tileSize;
+                threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize;
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+            }
+
+            // -----------------------------------------------------------------------------
+            // Prep and TileMinMax combined
+
+            if (combinedPrepAndTile)
+            {
+                cs = m_Resources.shaders.motionBlurTileGenCS;
+                kernel = cs.FindKernel("VelPrepAndTileMinMax");
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._MotionBlurIntensity, m_MotionBlur.intensity);
+                cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.prevViewProjMatrixNoCameraTrans);
+                threadGroupX = (camera.actualWidth + (tileSize - 1)) / tileSize;
+                threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize;
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+            }
+
+            // -----------------------------------------------------------------------------
+            // Generate max tiles neigbhourhood
+
+            cs = m_Resources.shaders.motionBlurTileGenCS;
+            kernel = cs.FindKernel("TileNeighbourhood");
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
+            threadGroupX = (tileTexWidth + 7) / 8;
+            threadGroupY = (tileTexHeight + 7) / 8;
+            cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+
+            // -----------------------------------------------------------------------------
+            // Blur kernel
+            cs = m_Resources.shaders.motionBlurCS;
+            kernel = cs.FindKernel("MotionBlurCS");
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
+            cmd.SetComputeIntParam(cs, HDShaderIDs._MotionBlurSampleCount, m_MotionBlur.sampleCount);
+
+            threadGroupX = (camera.actualWidth + 7) / 8;
+            threadGroupY = (camera.actualHeight + 7) / 8;
+            cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+
+            // -----------------------------------------------------------------------------
+            // Recycle RTs
+
+            m_Pool.Recycle(minMaxTileVel);
+            m_Pool.Recycle(maxTileNeigbourhood);
+            m_Pool.Recycle(preppedVelocity);
         }
 
         #endregion
@@ -1542,7 +1673,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Fill-in constant buffers & textures
             cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._OutputTexture, m_InternalLogLut);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Size, new Vector4(k_LogLutSize, 1f / (k_LogLutSize - 1f), 0f, 0f));
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Size, new Vector4(m_LutSize, 1f / (m_LutSize - 1f), 0f, 0f));
             cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ColorBalance, lmsColorBalance);
             cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ColorFilter, m_ColorAdjustments.colorFilter.value.linear);
             cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerRed, channelMixerR);
@@ -1583,9 +1714,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // See the note about Metal & Intel in LutBuilder3D.compute
             builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
             cmd.DispatchCompute(builderCS, builderKernel,
-                (int)((k_LogLutSize + threadX - 1u) / threadX),
-                (int)((k_LogLutSize + threadY - 1u) / threadY),
-                (int)((k_LogLutSize + threadZ - 1u) / threadZ)
+                (int)((m_LutSize + threadX - 1u) / threadX),
+                (int)((m_LutSize + threadY - 1u) / threadY),
+                (int)((m_LutSize + threadZ - 1u) / threadZ)
             );
 
             // This should be EV100 instead of EV but given that EV100(0) isn't equal to 1, it means
@@ -1593,7 +1724,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure);
 
             // Setup the uber shader
-            var logLutSettings = new Vector4(1f / k_LogLutSize, k_LogLutSize - 1f, postExposureLinear, 0f);
+            var logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._LogLut3D, m_InternalLogLut);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._LogLut3D_Params, logLutSettings);
         }

@@ -98,6 +98,7 @@ MonoBehaviour:
       type: 3}
     debugHDShadowMapPS: {fileID: 4800000, guid: 93d40cc9a6e13994f86f576a624efa18,
       type: 3}
+    momentShadowsCS: {fileID: 7200000, guid: 4dea53e2ff15ed0448817c2aa4246e53, type: 3}
     decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a,
       type: 3}
     aoDownsample1CS: {fileID: 7200000, guid: 8a771b3139fdbca41a4767875d014786, type: 3}
@@ -132,6 +133,11 @@ MonoBehaviour:
       type: 3}
     paniniProjectionCS: {fileID: 7200000, guid: 0ddbf72c8fbb6e44b983f470c8384ef6,
       type: 3}
+    motionBlurVelocityPrepCS: {fileID: 7200000, guid: ed9438fa777911d48933402087203b15,
+      type: 3}
+    motionBlurTileGenCS: {fileID: 7200000, guid: 5ee43b1e23a3bf743b4def192d377762,
+      type: 3}
+    motionBlurCS: {fileID: 7200000, guid: 2af5c49c7865edb4b823826970ec176a, type: 3}
     bloomPrefilterCS: {fileID: 7200000, guid: 243b24008041aaa4a91800690f63c684, type: 3}
     bloomBlurCS: {fileID: 7200000, guid: 133a68380d324de4ea8d3ff8657b02d8, type: 3}
     bloomUpsampleCS: {fileID: 7200000, guid: 5dbb0ac12cb11f84084b7e5633481bd1, type: 3}
