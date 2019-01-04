@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Unity.Collections;
@@ -295,7 +295,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             if (cameraData.isStereoEnabled)
             {
-                return XRGraphics.eyeTextureDesc;
+                desc = XRGraphics.eyeTextureDesc;
+                if (cameraData.isHdrEnabled)
+                    desc.colorFormat = RenderTextureFormat.ARGBHalf;
+
+                return desc;
             }
             else
             {
