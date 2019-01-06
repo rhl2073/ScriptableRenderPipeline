@@ -13,19 +13,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         protected static class StylesBaseLit
         {
-            public static GUIContent doubleSidedNormalModeText = new GUIContent("Normal Mode", "This will modify the normal base on the selected mode. Mirror: Mirror the normal with vertex normal plane, Flip: Flip the normal");
-            public static GUIContent depthOffsetEnableText = new GUIContent("Depth Offset", "Enable DepthOffset on this shader (Use with heightmap)");
+            public static GUIContent doubleSidedNormalModeText = new GUIContent("Normal Mode", "Modifies the normal base on the selected mode.\nMirror: Mirrors the normals with the vertex normal plane.\nFlip: Flips the normal.");
+            public static GUIContent depthOffsetEnableText = new GUIContent("Depth Offset", "Enable DepthOffset on this Material (Use with heightmap).");
 
             // Displacement mapping (POM, tessellation, per vertex)
             //public static GUIContent enablePerPixelDisplacementText = new GUIContent("Per Pixel Displacement", "");
 
-            public static GUIContent displacementModeText = new GUIContent("Displacement Mode", "Apply heightmap displacement to the selected element: Vertex, pixel or tessellated vertex. Pixel displacement must be use with flat surfaces, it is an expensive features and typical usage is paved road.");
-            public static GUIContent lockWithObjectScaleText = new GUIContent("Lock with object scale", "Displacement mapping will take the absolute value of the scale of the object into account.");
-            public static GUIContent lockWithTilingRateText = new GUIContent("Lock with height map tiling rate", "Displacement mapping will take the absolute value of the tiling rate of the height map into account.");
+            public static GUIContent displacementModeText = new GUIContent("Displacement Mode", "Apply height map displacement to the selected element: Vertex, pixel, or tessellated vertex.\n You must use Pixel displacement with flat surfaces.");
+            public static GUIContent lockWithObjectScaleText = new GUIContent("Lock with object scale", "When enabled, displacement mapping takes the absolute value of the scale of the object into account.");
+            public static GUIContent lockWithTilingRateText = new GUIContent("Lock with height map tiling rate", "When enabled, displacement mapping takes the absolute value of the tiling rate of the height map into account.");
 
             // Material ID
-            public static GUIContent materialIDText = new GUIContent("Material Type", "Select a material feature to enable on top of regular material");
-            public static GUIContent transmissionEnableText = new GUIContent("Transmission", "Transmission for getting  back lighting");
+            public static GUIContent materialIDText = new GUIContent("Material Type", "Additional feature for this Material. Customize you Material with different settings depending on which Material Type you select.");
+            public static GUIContent transmissionEnableText = new GUIContent("Transmission", "Enables the transmission effect for subsurface scattering. Simulates the translucency of the object.");
 
             // Per pixel displacement
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum steps", "Minimum steps (texture sample) to use with per pixel displacement mapping");

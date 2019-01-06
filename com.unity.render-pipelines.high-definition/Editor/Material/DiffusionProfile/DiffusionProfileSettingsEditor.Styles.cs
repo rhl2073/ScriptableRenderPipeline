@@ -29,7 +29,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new GUIContent("Thin Object",  		"Choose this mode for thin objects, such as paper or leaves. Transmitted light reuses the shadowing state of the surface.")
             };
             public readonly GUIContent   profileMinMaxThickness = new GUIContent("Thickness Remap Values (Min-Max)", "Shows the values of the thickness remap below (in millimeters).");
-            public readonly GUIContent   profileThicknessRemap  = new GUIContent("Thickness Remap (Min-Max)", "Remaps the thickness parameter from 0 to 1 to the desired range (in millimeters).");
+            public readonly GUIContent   profileThicknessRemap  = new GUIContent("Thickness Remap (Min-Max)", "Remaps the thickness parameter from [0, 1] to the desired range (in millimeters).");
             public readonly GUIContent   profileWorldScale      = new GUIContent("World Scale", "Size of the world unit in meters.");
             public readonly GUIContent   profileIor             = new GUIContent("Index of Refraction", "Select the index of refraction for this Diffusion Profile. For reference, skin is 1.4 and most materials are between 1.3 and 1.5.");
             public readonly GUIStyle     centeredMiniBoldLabel  = new GUIStyle(GUI.skin.label);
