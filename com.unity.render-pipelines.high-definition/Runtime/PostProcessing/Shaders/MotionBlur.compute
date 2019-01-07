@@ -1,6 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
 
 #pragma kernel MotionBlurCS
+//#pragma enable_d3d11_debug_symbols
 
 RWTexture2D<float3> _OutputTexture;
 Texture2D _InputTexture;
@@ -13,7 +14,6 @@ Texture2D _InputTexture;
 //	- When max velocity is above the tile size, in the rotating+moving camera case with a more noisy background, if you pause, you can see the tiles... yuck. Pretty much the same issue here. 
 
 // Various TODOs TODO_FCC:
-//	- Take center sample into account. 
 //	- Apply intensity scale to camera rotation component as well.
 
 // ---------------------------------------------
@@ -255,7 +255,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     else
     {
 #if OPTIMIZE_SAMPLE_COUNT
-		uint actualSampleCount = min(uint(maxVelLength) + (uint(maxVelLength) & 1), _SampleCount);
+		uint actualSampleCount = min(uint(maxVelLength) + (uint(maxVelLength) & 1), uint(_SampleCount));
 		actualSampleCount = max(actualSampleCount, 2);
 #else 
 		uint actualSampleCount = _SampleCount;
@@ -328,7 +328,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 			accumulation *= 2.0f;
 #endif
 
-            colorAccumulation = accumulation + (1.0f - accumulation.w) * centralColor;
+            colorAccumulation = accumulation.rgb + (1.0f - accumulation.w) * centralColor;
 
 #if DEBUG_VIEW == WEIGHT_VIS
             colorAccumulation = accumulation.rgb;
