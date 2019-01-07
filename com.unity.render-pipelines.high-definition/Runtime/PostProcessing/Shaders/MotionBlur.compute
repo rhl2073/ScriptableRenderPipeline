@@ -7,6 +7,15 @@ Texture2D _InputTexture;
 
 #define SOFT_Z_EXTENT 0.01
 
+
+// Known Bugs TODO_FCC:
+//	- When background is moving in directions very different than foreground (REPRO: set FPS to 30, put camera low, move it forward with dancing guys in scene. Notice artifacts when dancer crosses the horizon.)
+//	- When max velocity is above the tile size, in the rotating+moving camera case with a more noisy background, if you pause, you can see the tiles... yuck. Pretty much the same issue here. 
+
+// Various TODOs TODO_FCC:
+//	- Take center sample into account. 
+//	- Apply intensity scale to camera rotation component as well.
+
 // ---------------------------------------------
 // Debug
 // ---------------------------------------------
@@ -17,6 +26,7 @@ Texture2D _InputTexture;
 #define WEIGHT_VIS 2
 #define MAX_VELOCITY 3
 #define CUSTOM 4
+#define SAMPLE_COUNT 5
 
 #define DEBUG_VIEW NO_DEBUG
 
@@ -44,10 +54,11 @@ Texture2D _InputTexture;
 
 #define DEBUG_SLOW_PATH NO_DEBUG
 
-// ------------Debug Misc------------------
-#define MIRROR_WEIGHTS 0        // TODO_FCC: To test with noisy background.
+// ------------Options------------------
+#define MIRROR_WEIGHTS 1        // TODO_FCC: To test with noisy background.
 #define TILE_JITTER 1
 #define GUERTIN2014_DOUBLE_DIR 1
+#define OPTIMIZE_SAMPLE_COUNT 1
 
 // ---------------------------------------------
 // Misc utils
@@ -74,6 +85,7 @@ float2 GetTileUV(uint2 pixCoord, float2 randomVals)
 {
     randomVals -= 0.5f;
     randomVals *= 0.5f;
+
 
 #if !TILE_JITTER
     randomVals = 0;
@@ -242,7 +254,15 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
     else
     {
-        const float invSampleCount = 1.0f / _SampleCount;
+#if OPTIMIZE_SAMPLE_COUNT
+		uint actualSampleCount = min(uint(maxVelLength) + (uint(maxVelLength) & 1), _SampleCount);
+		actualSampleCount = max(actualSampleCount, 2);
+#else 
+		uint actualSampleCount = _SampleCount;
+#endif
+        const float invSampleCount = 1.0f / actualSampleCount;
+		uint stepCount = actualSampleCount / 2u;
+
 
         float2 centerSampleUV = (0.5f + dispatchThreadId.xy) * _ScreenSize.zw;
 
@@ -253,7 +273,6 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         if (fastPath)
         {
-            uint stepCount = _SampleCount / 2u;
             for (uint i = 0; i < stepCount; ++i)
             {
                 colorAccumulation += ProcessSampleFastPath(i, dir, invSampleCount, centerSampleUV, randomVal, -1);
@@ -268,14 +287,13 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         else
         {
             // Slow path.
-            uint stepCount = _SampleCount / 2u;
             float3 velocityAndDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, centerSampleUV, 0).xyz;
 
             float pixelToSampleScale = _SampleCount * 0.5f * maxVelLength;
             float2 centralTapVelocity = DecodeVelocityFromPacked(velocityAndDepth.xy);
             float  centralVelocityLen = VelocityLengthInPixelsFromEncoded(velocityAndDepth.xy);
 #if GUERTIN2014_DOUBLE_DIR
-            float2 centralDir = centralVelocityLen < 0.95f ? dir : centralTapVelocity * 0.5f;
+            float2 centralDir = centralVelocityLen < 1 ? dir : centralTapVelocity * 0.5f;
 #endif
 
             float  centralDepth = velocityAndDepth.z;
@@ -316,6 +334,9 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
             colorAccumulation = accumulation.rgb;
 			colorAccumulation.b = accumulation.w;
 #endif
+
+#if DEBUG_VIEW == WEIGHT_VIS
+#endif
         }
 
 
@@ -325,8 +346,8 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         colorAccumulation = maxVelLenPix;
 #endif
 
-#if DEBUG_VIEW == CUSTOM
-
+#if DEBUG_VIEW == SAMPLE_COUNT
+		colorAccumulation = colorAccumulation * 0.25f + 0.75f * lerp(float3(0.0f, 1.0f, 0.0f), float3(1.0, 0.0, 0.0), actualSampleCount / _SampleCount);
 #endif
 
 
