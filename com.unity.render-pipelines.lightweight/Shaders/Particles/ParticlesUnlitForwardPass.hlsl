@@ -15,6 +15,7 @@ struct AttributesParticle
     float2 texcoords : TEXCOORD0;
 #endif
     float4 tangent : TANGENT;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct VaryingsParticle
@@ -46,6 +47,8 @@ struct VaryingsParticle
 
     float3 vertexSH                 : TEXCOORD8; // SH
     float4 clipPos                  : SV_POSITION;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
@@ -112,8 +115,9 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     output.viewDirWS = viewDirWS;
 #endif
 
-    // TODO: Instancing
-    //vertColor(output.color);
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
     
     output.texcoord = input.texcoords.xy;
 #ifdef _FLIPBOOKBLENDING_ON
@@ -130,6 +134,7 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
 
 half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
 {
+    UNITY_SETUP_INSTANCE_ID(input);
     float2 uv = input.texcoord;
     float3 blendUv = float3(0, 0, 0);
 #if defined(_FLIPBOOKBLENDING_ON)

@@ -206,6 +206,12 @@ namespace UnityEditor
                 MaterialChanged(material);
         }
 
+        public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
+        {
+            base.AssignNewShaderToMaterial(material, oldShader, newShader);
+            OnOpenGUI(material);
+        }
+
         #endregion
         ////////////////////////////////////
         // Drawing Functions              //

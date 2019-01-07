@@ -93,7 +93,7 @@ namespace UnityEditor.Rendering.LWRP
                 Debug.Log(upgradeLog);
         }
 
-        static readonly Action<Material, ShaderPathID>[] k_Upgraders = { };
+        static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1 };
 
         static void InitializeLatest(Material material, ShaderPathID id)
         {
@@ -220,18 +220,23 @@ namespace UnityEditor.Rendering.LWRP
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            material.SetFloat("_SmoothnessSource" ,1 - material.GetFloat("_GlossinessSource"));
+            var smoothnessSource = 1 - (int)material.GetFloat("_GlossinessSource");
+            material.SetFloat("_SmoothnessSource" ,smoothnessSource);
             if (material.GetTexture("_SpecGlossMap") == null)
             {
                 var col = material.GetColor("_SpecColor");
                 
-                col.a = material.GetFloat("_Shininess");
+                var smoothness = material.GetFloat("_Shininess");
                 material.SetColor("_SpecColor", col);
                 if (material.GetFloat("_Surface") == 0)
                 {
                     var colBase = material.GetColor("_Color");
-                    colBase.a = col.a;
                     material.SetColor("_BaseColor", colBase);
+                    
+                    if (smoothnessSource == 1)
+                        colBase.a = smoothness;
+                    else
+                        col.a = smoothness;
                 }
             }
         }

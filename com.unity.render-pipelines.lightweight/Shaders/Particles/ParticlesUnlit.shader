@@ -95,6 +95,5 @@ Shader "Lightweight Render Pipeline/Particles/Unlit"
             ENDHLSL
         }
     }
-
     CustomEditor "UnityEditor.Rendering.LWRP.ShaderGUI.ParticlesUnlitShader"
 }

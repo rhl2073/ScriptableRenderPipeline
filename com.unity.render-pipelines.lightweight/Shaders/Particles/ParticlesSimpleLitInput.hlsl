@@ -9,21 +9,15 @@ float4 _CameraFadeParams;
 float4 _BaseMap_ST;
 half4 _BaseColor;
 half4 _EmissionColor;
-
-#if defined (_COLORADDSUBDIFF_ON)
-    half4 _BaseColorAddSubDiff;
-#endif
+half4 _BaseColorAddSubDiff;
 
 half _Cutoff;
 
 half4 _SpecColor;
 half _Smoothness;
 
-#if defined (_DISTORTION_ON)
 half _DistortionStrengthScaled;
 half _DistortionBlend;
-#endif
-
 CBUFFER_END
 
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
