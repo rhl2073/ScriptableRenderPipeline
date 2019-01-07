@@ -136,11 +136,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 renderer.EnqueuePass(m_CreateLightweightRenderTexturesPass);
             }
 
-            foreach (var pass in m_BeforeRenderPasses)
-            {
-                renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle, clearFlag));
-            }
-
             if (requiresDepthPrepass)
             {
                 m_DepthOnlyPass.Setup(baseDescriptor, DepthTexture, SampleCount.One);
@@ -164,6 +159,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_SetupLightweightConstants.Setup(renderer.maxVisibleAdditionalLights, renderer.perObjectLightIndices);
             renderer.EnqueuePass(m_SetupLightweightConstants);
 
+            foreach (var pass in m_BeforeRenderPasses)
+            {
+                renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle, clearFlag));
+            }
+
             // If a before all render pass executed we expect it to clear the color render target
             if (m_BeforeRenderPasses.Count != 0)
                 clearFlag = ClearFlag.None;
@@ -183,7 +183,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle));
             }
 
-            if (camera.clearFlags == CameraClearFlags.Skybox)
+            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
             {
                 m_DrawSkyboxPass.Setup(colorHandle, depthHandle);
                 renderer.EnqueuePass(m_DrawSkyboxPass);
