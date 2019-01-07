@@ -292,31 +292,30 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Camera camera = cameraData.camera;
             RenderTextureDescriptor desc;
             float renderScale = cameraData.renderScale;
+            RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
 
             if (cameraData.isStereoEnabled)
             {
                 desc = XRGraphics.eyeTextureDesc;
-                if (cameraData.isHdrEnabled)
-                    desc.colorFormat = RenderTextureFormat.ARGBHalf;
-
-                return desc;
+                renderTextureFormatDefault = desc.colorFormat;
             }
             else
             {
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+                desc.width = (int)((float)desc.width * renderScale * scaler);
+                desc.height = (int)((float)desc.height * renderScale * scaler);
+                desc.depthBufferBits = 32;
             }
-            
+
             bool useRGB10A2 = Application.isMobilePlatform &&
-             SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010);
+            SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010);
             RenderTextureFormat hdrFormat = (useRGB10A2) ? RenderTextureFormat.ARGB2101010 : RenderTextureFormat.DefaultHDR;
-            desc.colorFormat = cameraData.isHdrEnabled ? hdrFormat : RenderTextureFormat.Default;
-            desc.width = (int)((float)desc.width * renderScale * scaler);
-            desc.height = (int)((float)desc.height * renderScale * scaler);
+            desc.colorFormat = cameraData.isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
             desc.enableRandomWrite = false;
             desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             desc.msaaSamples = cameraData.msaaSamples;
-            desc.depthBufferBits = 32;
             desc.bindMS = false;
+
             return desc;
         }
 
