@@ -265,7 +265,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Section.Insert(index, row);
             m_PropertyRows[property.guid] = row;
 
-            m_PropertyRows[property.guid].expanded = SessionState.GetBool(property.guid.ToString(), false);
+            m_PropertyRows[property.guid].expanded = SessionState.GetBool(property.guid.ToString(), true);
 
             if (create)
             {
