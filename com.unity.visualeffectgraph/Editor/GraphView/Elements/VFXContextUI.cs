@@ -437,20 +437,6 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
-        public override void SetPosition(Rect newPos)
-        {
-            //if (classList.Contains("vertical"))
-            /*{
-                base.SetPosition(newPos);
-            }
-            else*/
-            {
-                style.position = PositionType.Absolute;
-                style.left = newPos.x;
-                style.top = newPos.y;
-            }
-        }
-
         public void RemoveBlock(VFXBlockUI block)
         {
             if (block == null)
@@ -805,7 +791,11 @@ namespace UnityEditor.VFX.UI
             m_TextField.visible = true;
             UpdateTitleFieldRect();
 
-            m_TextField.Focus();
+
+            m_TextField.Q(TextField.textInputUssName).visible = false;
+            m_TextField.Q(TextField.textInputUssName).visible = true;
+            m_TextField.Q(TextField.textInputUssName).Focus();
+
             m_TextField.SelectAll();
 
         }
