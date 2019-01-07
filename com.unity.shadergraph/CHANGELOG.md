@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The `Slider` node control now functions correctly.
 - Reverted the visual styling of various graph elements to their previous correct states.
 - Previews now repaint correctly when Unity does not have focus.
-- Serializing now works correctly for exposed Vector1 shader properties where the decimal separator is not a dot.
+- Code generation now works correctly for exposed Vector1 shader properties where the decimal separator is not a dot.
 
 ## [5.2.0] - 2018-11-27
 ### Added
