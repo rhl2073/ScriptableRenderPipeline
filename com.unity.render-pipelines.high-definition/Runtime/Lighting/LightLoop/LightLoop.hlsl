@@ -197,6 +197,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             s_lightIdx = WaveReadLaneFirst(s_lightIdx);
 #endif
             LightData s_lightData = FetchLight(s_lightIdx);
+            ApplyCameraRelativeStereoOffset_inv(s_lightData.positionRWS);
 
             // If current scalar and vector light index match, we process the light. The v_lightListOffset for current thread is increased.
             // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could

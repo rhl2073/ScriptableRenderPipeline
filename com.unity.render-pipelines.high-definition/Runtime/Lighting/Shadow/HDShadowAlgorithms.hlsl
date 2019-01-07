@@ -46,6 +46,11 @@ float4 EvalShadow_WorldToShadow(HDShadowData sd, float3 positionWS, bool perspPr
 #if 0
     return mul(viewProjection, float4(positionWS, 1));
 #else
+
+    // Note: shadowmaps are generated only once for all eyes from the combined center view (original camera matrix)
+    // For camera-relative code to work in stereo, we need to translate from eye-relative to camera-relative.
+    ApplyCameraRelativeStereoOffset(positionWS);
+
     if(perspProj)
     {
         positionWS = positionWS - sd.pos;
@@ -318,8 +323,6 @@ void LoadDirectionalShadowDatas(inout HDShadowData sd, HDShadowContext shadowCon
     sd.pos = shadowContext.shadowDatas[index].pos;
     sd.viewBias = shadowContext.shadowDatas[index].viewBias;
     sd.atlasOffset = shadowContext.shadowDatas[index].atlasOffset;
-
-    ApplyCameraRelativeStereoOffset(sd.pos);
 }
 
 float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
