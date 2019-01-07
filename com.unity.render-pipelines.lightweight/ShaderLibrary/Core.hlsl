@@ -5,6 +5,9 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Input.hlsl"
 
+#define LWRP_MAJOR_VERSION 5
+#define LWRP_MINOR_VERSION 3
+
 #if !defined(SHADER_HINT_NICE_QUALITY)
 #ifdef SHADER_API_MOBILE
 #define SHADER_HINT_NICE_QUALITY 0
