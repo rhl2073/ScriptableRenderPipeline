@@ -68,7 +68,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent iridescenceThicknessRemapText = new GUIContent("Iridescence Layer Thickness remap");
 
             // Clear Coat
-            public static GUIContent coatMaskText = new GUIContent("Coat Mask", "Attenuate the coating effect (similar to change to an index of refraction of 1");
+            public static GUIContent coatMaskText = new GUIContent("Coat Mask", "Attenuate the coating effect.");
 
             // Specular color
             public static GUIContent energyConservingSpecularColorText = new GUIContent("Energy Conserving Specular Color", "When enabled, HDRP simulates energy conservation when using Specular Color mode. This results in high Specular Color values producing lower Diffuse Color values.");

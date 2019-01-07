@@ -28,23 +28,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent transmissionEnableText = new GUIContent("Transmission", "Enables the transmission effect for subsurface scattering. Simulates the translucency of the object.");
 
             // Per pixel displacement
-            public static GUIContent ppdMinSamplesText = new GUIContent("Minimum steps", "Minimum steps (texture sample) to use with per pixel displacement mapping");
-            public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum steps", "Maximum steps (texture sample) to use with per pixel displacement mapping");
-            public static GUIContent ppdLodThresholdText = new GUIContent("Fading mip level start", "Starting heightmap mipmap lod number where the parallax occlusion mapping effect start to disappear");
-            public static GUIContent ppdPrimitiveLength = new GUIContent("Primitive length", "Dimensions of the primitive (with the scale of 1) to which the per-pixel displacement mapping is being applied. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
-            public static GUIContent ppdPrimitiveWidth = new GUIContent("Primitive width", "Dimensions of the primitive (with the scale of 1) to which the per-pixel displacement mapping is being applied. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
+            public static GUIContent ppdMinSamplesText = new GUIContent("Minimum steps", "Minimum steps (texture sample) to use with per pixel displacement mapping.");
+            public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum steps", "Maximum steps (texture sample) to use with per pixel displacement mapping.");
+            public static GUIContent ppdLodThresholdText = new GUIContent("Fading mip level start", "Starting heightmap mip level where the parallax occlusion mapping effect begins to disappear.");
+            public static GUIContent ppdPrimitiveLength = new GUIContent("Primitive length", "Length of the primitive (with the scale of 1) to which HDRP applies per-pixel displacement mapping. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
+            public static GUIContent ppdPrimitiveWidth = new GUIContent("Primitive width", "Width of the primitive (with the scale of 1) to which HDRP applies per-pixel displacement mapping. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
 
             // Tessellation
             public static string tessellationModeStr = "Tessellation Mode";
             public static readonly string[] tessellationModeNames = Enum.GetNames(typeof(TessellationMode));
 
             public static GUIContent tessellationText = new GUIContent("Tessellation options", "Tessellation options");
-            public static GUIContent tessellationFactorText = new GUIContent("Tessellation factor", "This value is the tessellation factor use for tessellation, higher mean more tessellated. Above 15 is costly. Maximum tessellation factor is 15 on XBone / PS4");
-            public static GUIContent tessellationFactorMinDistanceText = new GUIContent("Start fade distance", "Distance (in unity unit) at which the tessellation start to fade out. Must be inferior at Max distance");
-            public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("End fade distance", "Maximum distance (in unity unit) to the camera where triangle are tessellated");
+            public static GUIContent tessellationFactorText = new GUIContent("Tessellation factor", "Higher values result in more tessellation. Maximum tessellation factor is 15 on the Xbox One and PS4");
+            public static GUIContent tessellationFactorMinDistanceText = new GUIContent("Start fade distance", "Distance (in Unity units) at which tessellation begins to fade out.");
+            public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("End fade distance", "Maximum distance (in Unity unit) to the Camera where HDRP tessellates triangle.");
             public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Desired screen space sized of triangle (in pixel). Smaller value mean smaller triangle.");
-            public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Strength of Phong tessellation shape (lerp factor)");
-            public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If -1.0 back face culling is disabled for tessellation, higher number mean more aggressive culling and better performance");
+            public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Strength of Phong tessellation shape (lerp factor).");
+            public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "A value of -1.0 disables back face culling for tessellation, higher values produce more aggressive culling and better performance.");
 
             // Vertex animation
             public static string vertexAnimation = "Vertex Animation";
@@ -57,14 +57,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent windShiverDragText = new GUIContent("Shiver Drag");
             public static GUIContent windShiverDirectionalityText = new GUIContent("Shiver Directionality");
 
-            public static GUIContent supportDecalsText = new GUIContent("Receive Decals", "Allow material to receive decals or not");
+            public static GUIContent supportDecalsText = new GUIContent("Receive Decals", "Enable to allow Materials to receive decals.");
 
-            public static GUIContent enableGeometricSpecularAAText = new GUIContent("Geometric Specular AA", "This reduce specular aliasing on highly dense mesh (Particularly useful when they don't use normal map)");
-            public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Allow to control the strength of the specular AA reduction. Higher mean more blurry result and less aliasing");
-            public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Allow to limit the effect of specular AA reduction. 0 mean don't apply reduction, higher value mean allow higher reduction");
+            public static GUIContent enableGeometricSpecularAAText = new GUIContent("Geometric Specular AA", "Reduces specular aliasing on highly dense meshes (Particularly useful when the not using a normal map).");
+            public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Controls the strength of the Specular AA reduction. Higher values give a more blurry result and less aliasing.");
+            public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Limits the effect of Specular AA reduction. A values of 0 does not apply reduction, higher values allow higher reduction.");
 
             // SSR
-            public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "Allow to specify if the material can receive SSR or not");
+            public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "Enable to allow Materials to receive SSR.");
 
         }
 
