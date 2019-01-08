@@ -563,7 +563,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _TileTargetSize                 = Shader.PropertyToID("_TileTargetSize");
         public static readonly int _MotionBlurSampleCount          = Shader.PropertyToID("_SampleCount");
         public static readonly int _MotionBlurParams               = Shader.PropertyToID("_MotionBlurParams0");
-        public static readonly int _MotionBlurIntensity            = Shader.PropertyToID("_MotionBlurIntensity");
+        public static readonly int _MotionBlurParams1              = Shader.PropertyToID("_MotionBlurParams1");
         public static readonly int _PrevVPMatrixNoTranslation      = Shader.PropertyToID("_PrevVPMatrixNoTranslation");
 
     }

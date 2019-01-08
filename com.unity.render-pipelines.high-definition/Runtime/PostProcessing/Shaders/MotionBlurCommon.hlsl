@@ -28,14 +28,17 @@ CBUFFER_START(MotionBlurUniformBuffer)
 float4x4 _PrevVPMatrixNoTranslation;
 float4 _TileTargetSize;     // .xy size, .zw 1/size
 float4 _MotionBlurParams0;  // Unpacked below.
-float _MotionBlurIntensity;
+float4 _MotionBlurParams1;	// Upacked below.
 int    _SampleCount;
 CBUFFER_END
 
-#define _ScreenMagnitude _MotionBlurParams0.x
-#define _MotionBlurMaxVelocity _MotionBlurParams0.y
-#define _MinVelThreshold  _MotionBlurParams0.z
-#define _MinMaxVelRatioForSlowPath _MotionBlurParams0.w
+#define _ScreenMagnitude			_MotionBlurParams0.x
+#define _ScreenMagnitudeSq			_MotionBlurParams0.y
+#define _MinVelThreshold			_MotionBlurParams0.z
+#define _MinVelThresholdSq			_MotionBlurParams0.w
+#define _MotionBlurIntensity		_MotionBlurParams1.x
+#define _MotionBlurMaxVelocity		_MotionBlurParams1.y
+#define _MinMaxVelRatioForSlowPath	_MotionBlurParams1.z
 
 
 // --------------------------------------
