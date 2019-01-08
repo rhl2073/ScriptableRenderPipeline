@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now inject a custom render pass before LWRP renders opaque objects. To do so, implement an `IBeforeRender` interface.
 
 ### Changed
-- You can now only initialize a camera by setting a Background Type. The supported options are Skybox, Solid Color, and Don't Initialize.
+- You can now only initialize a camera by setting a Background Type. The supported options are Skybox, Solid Color, and Don't Care.
 - LWRP now uses non-square shadowmap textures when it renders directional shadows with 2 shadow cascades. 
 - LWRP now uses ARGB2101010 as the HDR format on mobile devices, when this format is supported.
 - Removed `IAfterDepthPrePass` interface.

@@ -333,12 +333,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             // LWRP doesn't support CameraClearFlags.DepthOnly.
             // In case of skybox we know all pixels will be rendered to screen so
             // we don't clear color. In Vulkan/Metal this becomes DontCare load action
+            // and in GLES, glInvalidateBuffer. 
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
                 cameraClearFlags == CameraClearFlags.Nothing)
                 return ClearFlag.Depth;
 
-            // Otherwise we clear color + depth. This becomes either a clear load action or glInvalidateBuffer call
-            // on mobile devices. On PC/Desktop a clear is performed by blitting a full screen quad.
             return ClearFlag.All;
         }
 
