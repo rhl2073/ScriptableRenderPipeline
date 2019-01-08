@@ -1273,8 +1273,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, motionBlurParams1);
             cmd.SetComputeIntParam(cs, HDShaderIDs._MotionBlurSampleCount, m_MotionBlur.sampleCount);
 
-            threadGroupX = (camera.actualWidth + 7) / 8;
-            threadGroupY = (camera.actualHeight + 7) / 8;
+            threadGroupX = (camera.actualWidth + 15) / 16;
+            threadGroupY = (camera.actualHeight + 15) / 16;
             cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
 
             // -----------------------------------------------------------------------------
