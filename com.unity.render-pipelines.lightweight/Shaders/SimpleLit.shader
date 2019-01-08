@@ -38,7 +38,7 @@ Shader "Lightweight Render Pipeline/Simple Lit"
         [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}
         [HideInInspector] _Color("Base Color", Color) = (0.5, 0.5, 0.5, 1)
         [HideInInspector] _Shininess("Smoothness", Float) = 0.0
-        [HideInInspector] _SmoothnessSource("SmoothnessSource", Float) = 0.0
+        [HideInInspector] _GlossinessSource("GlossinessSource", Float) = 0.0
         [HideInInspector] _SpecSource("SpecularHighlights", Float) = 0.0
     }
 

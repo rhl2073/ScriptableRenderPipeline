@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEditor.Rendering.LWRP.ShaderGUI;
 using UnityEngine;
 using UnityEngine.Rendering.LWRP;
 
@@ -19,14 +20,6 @@ namespace UnityEditor.Rendering.LWRP
 
     class MaterialPostprocessor : AssetPostprocessor
     {
-        static List<string> s_LWRPShaders = new List<string>
-        {
-            // TODO: Populate this
-            // Lit
-            "933532a4fcc9baf4fa0491de14d08ed7",
-            // SimpleLit
-        };
-
         public static List<string> s_CreatedAssets = new List<string>();
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
@@ -43,15 +36,15 @@ namespace UnityEditor.Rendering.LWRP
                 }
 
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
-                var shaderGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(material.shader));
-                if (!s_LWRPShaders.Contains(shaderGuid))
+                //var shaderGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(material.shader));
+                if (!ShaderUtils.IsLWShader(material.shader))
                 {
                     continue;
                 }
 
                 ShaderPathID id = ShaderUtils.GetEnumFromPath(material.shader.name);
                 var wasUpgraded = false;
-                var assetVersion = (AssetVersion)AssetDatabase.LoadAssetAtPath(asset, typeof(AssetVersion));
+                var assetVersion = AssetDatabase.LoadAllAssetsAtPath(asset)[0] as AssetVersion;
                 var debug = "\n" + material.name;
 
                 if (!assetVersion)
@@ -77,7 +70,7 @@ namespace UnityEditor.Rendering.LWRP
                 while (assetVersion.version < k_Upgraders.Length)
                 {
                     k_Upgraders[assetVersion.version](material, id);
-                    debug += $" upgrading:v{assetVersion.version - 1} to v{assetVersion.version}";
+                    debug += $" upgrading:v{assetVersion.version} to v{assetVersion.version + 1}";
                     assetVersion.version++;
                     wasUpgraded = true;
                 }
@@ -108,13 +101,28 @@ namespace UnityEditor.Rendering.LWRP
             switch (shaderID)
             {
                 case ShaderPathID.Unlit:
-                    MaterialUpgrader.Upgrade(material, new LitUpdaterV1(shaderPath), upgradeFlag);
+                    MaterialUpgrader.Upgrade(material, new UnlitUpdaterV1(shaderPath), upgradeFlag);
+                    UnlitShader.SetMaterialKeywords(material);
                     break;
                 case ShaderPathID.SimpleLit:
-                    MaterialUpgrader.Upgrade(material, new LitUpdaterV1(shaderPath), upgradeFlag);
+                    MaterialUpgrader.Upgrade(material, new SimpleLitUpdaterV1(shaderPath), upgradeFlag);
+                    SimpleLitShader.SetMaterialKeywords(material, SimpleLitGUI.SetMaterialKeywords);
                     break;
                 case ShaderPathID.Lit:
                     MaterialUpgrader.Upgrade(material, new LitUpdaterV1(shaderPath), upgradeFlag);
+                    LitShader.SetMaterialKeywords(material, LitGUI.SetMaterialKeywords);
+                    break;
+                case ShaderPathID.ParticlesLit:
+                    MaterialUpgrader.Upgrade(material, new ParticleUpdaterV1(shaderPath), upgradeFlag);
+                    ParticlesLitShader.SetMaterialKeywords(material, LitGUI.SetMaterialKeywords, ParticleGUI.SetMaterialKeywords);
+                    break;
+                case ShaderPathID.ParticlesSimpleLit:
+                    MaterialUpgrader.Upgrade(material, new ParticleUpdaterV1(shaderPath), upgradeFlag);
+                    ParticlesSimpleLitShader.SetMaterialKeywords(material, SimpleLitGUI.SetMaterialKeywords, ParticleGUI.SetMaterialKeywords);
+                    break;
+                case ShaderPathID.ParticlesUnlit:
+                    MaterialUpgrader.Upgrade(material, new ParticleUpdaterV1(shaderPath), upgradeFlag);
+                    ParticlesUnlitShader.SetMaterialKeywords(material, null, ParticleGUI.SetMaterialKeywords);
                     break;
             }
         }
@@ -125,30 +133,16 @@ namespace UnityEditor.Rendering.LWRP
 
     internal class LitUpdaterV1 : MaterialUpgrader
     {
-        public static void UpdateStandardMaterialKeywords(Material material)
+        public static void UpdateLitDetails(Material material)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
             
-            if(material.GetTexture("_MetallicGlossMap"))
+            if(material.GetTexture("_MetallicGlossMap") || material.GetTexture("_SpecGlossMap") || material.GetFloat("_SmoothnessTextureChannel") >= 0.5f)
                 material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
             else
                 material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));
             
-            material.SetColor("_BaseColor", material.GetColor("_Color"));
-        }
-
-        public static void UpdateStandardSpecularMaterialKeywords(Material material)
-        {
-            if (material == null)
-                throw new ArgumentNullException("material");
-            
-            if(material.GetTexture("_SpecGlossMap"))
-                material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
-            else
-                material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));
-            
-            material.SetColor("_BaseColor", material.GetColor("_Color"));
         }
 
         public LitUpdaterV1(string oldShaderName)
@@ -158,14 +152,7 @@ namespace UnityEditor.Rendering.LWRP
 
             string standardShaderPath = ShaderUtils.GetShaderPath(ShaderPathID.Lit);
 
-            if (oldShaderName.Contains("Specular"))
-            {
-                RenameShader(oldShaderName, standardShaderPath, UpdateStandardSpecularMaterialKeywords);
-            }
-            else
-            {
-                RenameShader(oldShaderName, standardShaderPath, UpdateStandardMaterialKeywords);
-            }
+            RenameShader(oldShaderName, standardShaderPath, UpdateLitDetails);
 
             RenameTexture("_MainTex", "_BaseMap");
             RenameColor("_Color", "_BaseColor");
@@ -213,6 +200,7 @@ namespace UnityEditor.Rendering.LWRP
             RenameTexture("_MainTex", "_BaseMap");
             RenameColor("_Color", "_BaseColor");
             RenameFloat("_SpecSource", "_SpecularHighlights");
+            RenameFloat("_Shininess", "_Smoothness");
         }
         
         public static void UpgradeToSimpleLit(Material material)
@@ -238,6 +226,70 @@ namespace UnityEditor.Rendering.LWRP
                     else
                         col.a = smoothness;
                 }
+            }
+        }
+    }
+
+    internal class ParticleUpdaterV1 : MaterialUpgrader
+    {
+        public static void UpdateParticleDetails(Material material)
+        {
+            if (material == null)
+                throw new ArgumentNullException("material");
+
+            switch (material.GetFloat("_Mode"))
+            {
+                case 0f: // Opaque
+                    material.SetFloat("_Surface", 0f);
+                    break;
+                case 1f: // AlphaClip
+                    material.SetFloat("_Surface", 0f);
+                    material.SetFloat("_AlphaClip", 1f);
+                    break;
+                case 2f: // Fade
+                    material.SetFloat("_Surface", 1f);
+                    material.SetFloat("_Blend", 0f);
+                    break;
+                case 3f: // Premul
+                    material.SetFloat("_Surface", 1f);
+                    material.SetFloat("_Blend", 1f);
+                    break;
+                case 4f: // Add
+                    material.SetFloat("_Surface", 1f);
+                    material.SetFloat("_Blend", 2f);
+                    break;
+                case 5f: // Subtractive(not-supported)
+                    material.SetFloat("_Surface", 1f);
+                    material.SetFloat("_Blend", 3f);
+                    break;
+                case 6f: // Mul
+                    material.SetFloat("_Surface", 1f);
+                    material.SetFloat("_Blend", 3f);
+                    break;
+            }
+        }
+
+        public ParticleUpdaterV1(string shaderName)
+        {
+            if (shaderName == null)
+                throw new ArgumentNullException("oldShaderName");
+
+            RenameShader(shaderName, shaderName, UpdateParticleDetails);
+
+            RenameTexture("_MainTex", "_BaseMap");
+            RenameColor("_Color", "_BaseColor");
+            RenameFloat("_FlipbookMode", "_FlipbookBlending");
+
+            switch (ShaderUtils.GetEnumFromPath(shaderName))
+            {
+                case ShaderPathID.ParticlesLit:
+                    RenameFloat("_Glossiness", "_Smoothness");
+                    break;
+                case ShaderPathID.ParticlesSimpleLit:
+                    RenameFloat("_Glossiness", "_Smoothness");
+                    break;
+                case ShaderPathID.ParticlesUnlit:
+                    break;
             }
         }
     }

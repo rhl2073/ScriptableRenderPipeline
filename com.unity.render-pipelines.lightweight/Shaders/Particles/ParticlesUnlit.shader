@@ -40,6 +40,11 @@ Shader "Lightweight Render Pipeline/Particles/Unlit"
         
         // Editmode props
         [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+        
+        // ObsoleteProperties
+        [HideInInspector] _FlipbookMode("flipbook", Float) = 0
+        [HideInInspector] _Mode("mode", Float) = 0
+        [HideInInspector] _Color("color", Color) = (1,1,1,1)
     }
 
     SubShader

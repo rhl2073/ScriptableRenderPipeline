@@ -354,8 +354,12 @@ namespace UnityEditor
             if(material.HasProperty("_ReceiveShadows"))
                 CoreUtils.SetKeyword(material, "_RECEIVE_SHADOWS_OFF", material.GetFloat("_ReceiveShadows") == 0.0f);
             // Emission
+            if (material.HasProperty("_EmissionColor"))
+                MaterialEditor.FixupEmissiveFlag(material);
             bool shouldEmissionBeEnabled =
                 (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
+            if (material.HasProperty("_EmissionEnabled") && !shouldEmissionBeEnabled)
+                shouldEmissionBeEnabled = material.GetFloat("_EmissionEnabled") >= 0.5f;
             CoreUtils.SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
             // Normal Map
             if(material.HasProperty("_BumpMap"))
