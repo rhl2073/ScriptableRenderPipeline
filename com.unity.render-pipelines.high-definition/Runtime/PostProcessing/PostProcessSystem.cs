@@ -1243,6 +1243,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             cs = m_Resources.shaders.motionBlurTileGenCS;
             kernel = cs.FindKernel("TileNeighbourhood");
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
             threadGroupX = (tileTexWidth + 7) / 8;

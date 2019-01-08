@@ -128,10 +128,9 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 
 #define GUERTING2014 0
 
-// TODO_FCC: Clamp.
 
 [numthreads(8, 8, 1)]
-void TileNeighbourhood(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
 
 #if GUERTING2014 
@@ -183,19 +182,23 @@ void TileNeighbourhood(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex,
 
     _TileMaxNeighbourhood[id.xy] = float3(maxVel, Min3(minVel0, minVel1, minVel2)) ;
 #else
-    // Sample the 1-ring neighbourhood of tile texture
-    float3 centralSample = _TileMinMaxVel[id.xy + uint2( 0,  0)].xyz;
-    float3 v0       = _TileMinMaxVel[id.xy + int2(-1,  1)].xyz;
-    float3 v1       = _TileMinMaxVel[id.xy + int2( 0,  1)].xyz;
-    float3 v2       = _TileMinMaxVel[id.xy + int2( 1,  1)].xyz;
+	int2 id = dispatchID.xy;
+	int2 maxCoords = int2(_TileTargetSize.xy - 1);
 
-    float3 v3       = _TileMinMaxVel[id.xy + int2(-1,  0)].xyz;
-    float3 v4       = centralSample.xyz;
-    float3 v5       = _TileMinMaxVel[id.xy + int2( 1,  0)].xyz;
+	float3 centralSample = _TileMinMaxVel[id.xy + uint2(0, 0)].xyz;
+	
+	float3 v0 = _TileMinMaxVel[clamp(id.xy + int2(-1,  1), int2(0, 0), maxCoords)].xyz;
+	float3 v1 = _TileMinMaxVel[clamp(id.xy + int2( 0,  1), int2(0, 0), maxCoords)].xyz;
+	float3 v2 = _TileMinMaxVel[clamp(id.xy + int2( 1,  1), int2(0, 0), maxCoords)].xyz;
 
-    float3 v6       = _TileMinMaxVel[id.xy + int2(-1, -1)].xyz;
-    float3 v7       = _TileMinMaxVel[id.xy + int2( 0, -1)].xyz;
-    float3 v8       = _TileMinMaxVel[id.xy + int2( 1, -1)].xyz;
+	float3 v3 = _TileMinMaxVel[clamp(id.xy + int2(-1,  0), int2(0, 0), maxCoords)].xyz;
+	float3 v4 = centralSample.xyz;
+	float3 v5 = _TileMinMaxVel[clamp(id.xy + int2( 1,  0), int2(0, 0), maxCoords)].xyz;
+
+	float3 v6 = _TileMinMaxVel[clamp(id.xy + int2(-1,  -1), int2(0, 0), maxCoords)].xyz;
+	float3 v7 = _TileMinMaxVel[clamp(id.xy + int2( 0,  -1), int2(0, 0), maxCoords)].xyz;
+	float3 v8 = _TileMinMaxVel[clamp(id.xy + int2( 1,  -1), int2(0, 0), maxCoords)].xyz;
+
 
     float2 maxVel0 = MaxVel(v0.xy, MaxVel(v1.xy, v2.xy));
     float2 maxVel1 = MaxVel(v3.xy, MaxVel(v4.xy, v5.xy));
