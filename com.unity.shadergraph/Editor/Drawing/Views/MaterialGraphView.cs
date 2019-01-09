@@ -258,6 +258,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var propNode = new PropertyNode();
                 propNode.drawState = node.drawState;
+                propNode.groupGuid = node.groupGuid;
                 graph.AddNode(propNode);
                 propNode.propertyGuid = prop.guid;
 
