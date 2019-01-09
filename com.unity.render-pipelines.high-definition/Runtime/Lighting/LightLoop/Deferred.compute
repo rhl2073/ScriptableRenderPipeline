@@ -101,6 +101,13 @@
 
 #define HAS_LIGHTLOOP
 
+CBUFFER_START(UnityDeferredCompute)
+uint g_TileListOffset;
+#ifdef ENABLE_RAYTRACING
+// Uniform variables that defines if we shall be using the shadow area texture or not
+int _RaytracedAreaShadow;
+#endif
+CBUFFER_END
 
 // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
 // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
@@ -118,13 +125,6 @@
 RWTexture2D<float3> diffuseLightingUAV;
 RWTexture2D<float4> specularLightingUAV;
 
-CBUFFER_START(UnityDeferredCompute)
-    uint g_TileListOffset;
-    #ifdef ENABLE_RAYTRACING
-    // Uniform variables that defines if we shall be using the shadow area texture or not
-    int _RaytracedAreaShadow;
-    #endif
-CBUFFER_END
 
 #ifdef USE_INDIRECT
 
